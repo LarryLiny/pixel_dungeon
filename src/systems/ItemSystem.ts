@@ -30,13 +30,7 @@ export class ItemSystem {
     for (const item of this.player.skills) {
       const value = getItemValue(item.id, item.level);
       const def = ALL_ITEMS[item.id];
-      if (!def) {
-        // Fusion outputs are not in ALL_ITEMS, give slot bonus
-        if (isFusionOutput(item.id)) {
-          fusionSlotBonus++;
-        }
-        continue;
-      }
+      if (!def) continue;
 
       switch (item.id) {
         // ── Weapons ──
@@ -82,6 +76,73 @@ export class ItemSystem {
         case 'death_scythe':
           mod.executeThreshold = Math.max(mod.executeThreshold, value);
           mod.weaponType = 'death_scythe';
+          break;
+
+        // ── Fusion Weapons ──
+        case 'freeze_shotgun':
+          mod.shotCount += value - 1;
+          mod.slowOnHit = Math.max(mod.slowOnHit, 0.6);
+          mod.slowDuration = Math.max(mod.slowDuration, 2.0);
+          mod.weaponType = 'freeze_shotgun';
+          break;
+        case 'hellfire':
+          mod.orbCount += value;
+          mod.weaponType = 'hellfire';
+          break;
+        case 'death_wheel':
+          mod.boomerangCount += value;
+          mod.executeThreshold = Math.max(mod.executeThreshold, 0.15);
+          mod.weaponType = 'death_wheel';
+          break;
+        case 'mega_blaster':
+          mod.damageMul *= value;
+          mod.pierce += 3;
+          mod.weaponType = 'mega_blaster';
+          break;
+        case 'thunder_slash':
+          mod.swordArcAngle = 90;
+          mod.swordRange = 60 + value * 10;
+          mod.damageMul *= value;
+          mod.weaponType = 'thunder_slash';
+          break;
+        case 'fragment_bomb':
+          mod.shotCount += value - 1;
+          mod.splashRadius = Math.max(mod.splashRadius, 40);
+          mod.weaponType = 'fragment_bomb';
+          break;
+        case 'thunderstorm':
+          mod.chainCount += value;
+          mod.weaponType = 'thunderstorm';
+          break;
+        case 'tracking_fireball':
+          mod.orbCount += value;
+          mod.weaponType = 'tracking_fireball';
+          break;
+        case 'frost_storm':
+          mod.iceSlowAmount = Math.max(mod.iceSlowAmount, 0.3 + value * 0.05);
+          mod.chainCount += Math.floor(value * 0.5);
+          mod.damageMul *= value;
+          mod.weaponType = 'frost_storm';
+          break;
+        case 'plague_bomb':
+          mod.poisonDpsField += value;
+          mod.splashRadius = Math.max(mod.splashRadius, 30);
+          mod.weaponType = 'plague_bomb';
+          break;
+        case 'sun_storm':
+          mod.orbCount += value;
+          mod.bulletSizeMul *= 1.5;
+          mod.weaponType = 'sun_storm';
+          break;
+        case 'photon_cannon':
+          mod.laserDps += value;
+          mod.attackSpeedMul *= 0.7;
+          mod.weaponType = 'photon_cannon';
+          break;
+        case 'soul_reaper':
+          mod.executeThreshold = Math.max(mod.executeThreshold, value);
+          mod.splashRadius = Math.max(mod.splashRadius, 20);
+          mod.weaponType = 'soul_reaper';
           break;
 
         // ── Augments ──
@@ -145,6 +206,47 @@ export class ItemSystem {
           mod.holyGuardThreshold = 0.2;
           mod.holyGuardHealRatio = Math.max(mod.holyGuardHealRatio, value);
           break;
+
+        // ── Fusion Defenses ──
+        case 'wind_runner':
+          mod.speedMul *= value;
+          mod.healPerTick += Math.floor(value * 0.5);
+          mod.healInterval = 1000;
+          break;
+        case 'shield_bash':
+          mod.shieldOrbs += value;
+          mod.reflectChance = Math.max(mod.reflectChance, 0.3);
+          break;
+        case 'void_walker':
+          mod.ghostStepDuration = Math.max(mod.ghostStepDuration, value);
+          mod.ghostStepInterval = 4000;
+          mod.speedMul *= 1.2;
+          break;
+        case 'black_hole':
+          mod.repulseRadius = Math.max(mod.repulseRadius, value);
+          mod.magnetRange += value * 0.5;
+          break;
+        case 'absolute_defense':
+          mod.shieldOrbs += value;
+          mod.reflectChance = Math.max(mod.reflectChance, 0.5);
+          mod.shieldReduction = Math.max(mod.shieldReduction, 0.3);
+          break;
+        case 'angel_embrace':
+          mod.holyGuardThreshold = 0.5;
+          mod.holyGuardHealRatio = Math.max(mod.holyGuardHealRatio, value);
+          mod.ghostStepDuration = Math.max(mod.ghostStepDuration, 3.0);
+          break;
+
+        // ── Fusion Augments ──
+        case 'nuclear_core':
+          mod.damageMul *= value;
+          mod.splashRadius = Math.max(mod.splashRadius, 50);
+          break;
+      }
+
+      // Fusion outputs grant extra skill slots
+      if (isFusionOutput(item.id)) {
+        fusionSlotBonus++;
       }
     }
 

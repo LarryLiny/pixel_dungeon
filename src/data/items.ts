@@ -386,11 +386,38 @@ export const DEFENSES: Record<string, ItemDef> = {
   },
 };
 
-/** All items merged */
+/* ============================================================
+   融合产物（20种）— 两个道具融合后的产出
+   ============================================================ */
+export const FUSION_ITEMS: Record<string, ItemDef> = {
+  freeze_shotgun: { id: 'freeze_shotgun', name: '急冻霰弹', category: 'weapon', rarity: 'uncommon', description: '子弹减速敌人60%', color: '#88ccff', icon: '冻', maxLevel: 9, levels: [3, 5, 7, 9, 11, 14, 17, 20, 24], locked: false },
+  hellfire: { id: 'hellfire', name: '地狱火', category: 'weapon', rarity: 'uncommon', description: '火球点燃地面持续灼烧', color: '#ff6622', icon: '焰', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 11, 14], locked: false },
+  death_wheel: { id: 'death_wheel', name: '死亡轮盘', category: 'weapon', rarity: 'uncommon', description: '巨大回旋镖斩杀低血量目标', color: '#22ddaa', icon: '轮', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 11, 14], locked: false },
+  wind_runner: { id: 'wind_runner', name: '风行者', category: 'defense', rarity: 'uncommon', description: '移动时回血速度翻倍', color: '#66ffaa', icon: '风', maxLevel: 9, levels: [1.5, 2.0, 2.5, 3.0, 3.8, 4.5, 5.5, 7.0, 9.0], locked: false },
+  mega_blaster: { id: 'mega_blaster', name: '巨炮', category: 'weapon', rarity: 'uncommon', description: '单发巨型弹，高伤害+穿透', color: '#ffcc44', icon: '炮', maxLevel: 9, levels: [1.0, 1.3, 1.6, 2.0, 2.5, 3.0, 3.8, 5.0, 7.0], locked: false },
+  shield_bash: { id: 'shield_bash', name: '铁壁', category: 'defense', rarity: 'uncommon', description: '护盾反弹伤害给敌人', color: '#6688cc', icon: '铁', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 11, 14], locked: false },
+  thunder_slash: { id: 'thunder_slash', name: '雷暴斩', category: 'weapon', rarity: 'rare', description: '剑气命中触发连锁闪电', color: '#88aaff', icon: '雷', maxLevel: 9, levels: [1.5, 2.0, 2.8, 3.5, 4.5, 5.5, 7.0, 9.0, 12.0], locked: false },
+  fragment_bomb: { id: 'fragment_bomb', name: '碎裂炮', category: 'weapon', rarity: 'rare', description: '命中分裂成小弹片，范围伤害', color: '#ff7744', icon: '碎', maxLevel: 9, levels: [3, 5, 7, 9, 11, 14, 17, 20, 24], locked: false },
+  thunderstorm: { id: 'thunderstorm', name: '雷暴', category: 'weapon', rarity: 'rare', description: '穿透型闪电攻击', color: '#6699ff', icon: '暴', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 12, 15], locked: false },
+  tracking_fireball: { id: 'tracking_fireball', name: '追踪火球', category: 'weapon', rarity: 'rare', description: '火球自动追踪最近敌人', color: '#ff5533', icon: '追', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 11, 14], locked: false },
+  void_walker: { id: 'void_walker', name: '虚空行者', category: 'defense', rarity: 'rare', description: '无敌频率大幅提升', color: '#99aacc', icon: '虚', maxLevel: 9, levels: [1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.6, 3.0], locked: false },
+  frost_storm: { id: 'frost_storm', name: '雷暴冰霜', category: 'weapon', rarity: 'epic', description: '冰冻后闪电爆裂双重伤害', color: '#44ccff', icon: '霜', maxLevel: 9, levels: [1.2, 1.6, 2.0, 2.5, 3.2, 4.0, 5.0, 6.5, 8.5], locked: false },
+  plague_bomb: { id: 'plague_bomb', name: '瘟疫炸弹', category: 'weapon', rarity: 'epic', description: '毒雾范围爆炸持续伤害', color: '#66aa22', icon: '瘟', maxLevel: 9, levels: [1.0, 1.5, 2.0, 2.5, 3.2, 4.0, 5.0, 6.5, 8.0], locked: false },
+  black_hole: { id: 'black_hole', name: '黑洞', category: 'defense', rarity: 'epic', description: '吸引+减速+伤害+爆炸', color: '#8844cc', icon: '洞', maxLevel: 9, levels: [70, 100, 130, 170, 210, 260, 320, 400, 500], locked: false },
+  sun_storm: { id: 'sun_storm', name: '太阳风暴', category: 'weapon', rarity: 'epic', description: '超大火球灼烧范围内所有敌人', color: '#ff8822', icon: '阳', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 11, 14], locked: false },
+  nuclear_core: { id: 'nuclear_core', name: '核弹核心', category: 'augment', rarity: 'epic', description: '命中触发范围爆炸', color: '#ff3355', icon: '核', maxLevel: 9, levels: [25, 40, 55, 75, 95, 120, 150, 185, 230], locked: false },
+  photon_cannon: { id: 'photon_cannon', name: '光子炮', category: 'weapon', rarity: 'legendary', description: '持续扫射激光束', color: '#ff44ff', icon: '光', maxLevel: 9, levels: [1.5, 2.0, 2.8, 3.5, 4.5, 5.5, 7.0, 9.0, 12.0], locked: false },
+  absolute_defense: { id: 'absolute_defense', name: '绝对防御', category: 'defense', rarity: 'legendary', description: '护盾反弹+无敌帧大幅增加', color: '#ccddff', icon: '绝', maxLevel: 9, levels: [1, 2, 3, 4, 5, 7, 9, 11, 14], locked: false },
+  soul_reaper: { id: 'soul_reaper', name: '灵魂收割', category: 'weapon', rarity: 'legendary', description: '斩杀触发范围爆炸+回复', color: '#aa22ff', icon: '魂', maxLevel: 9, levels: [0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.60], locked: false },
+  angel_embrace: { id: 'angel_embrace', name: '天使之拥', category: 'defense', rarity: 'legendary', description: '低于50%血自动大回血+无敌3s', color: '#ffffaa', icon: '使', maxLevel: 9, levels: [0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.65], locked: false },
+};
+
+/** All items including fusion outputs */
 export const ALL_ITEMS: Record<string, ItemDef> = {
   ...WEAPONS,
   ...AUGMENTS,
   ...DEFENSES,
+  ...FUSION_ITEMS,
 };
 
 export const ITEM_IDS = Object.keys(ALL_ITEMS);
