@@ -1,0 +1,29 @@
+{
+  "name": "地牢肉鸽 - Dungeon Roguelike",
+  "short_name": "地牢肉鸽",
+  "description": "像素风Roguelike生存射击游戏。自动射击、随机技能组合、无尽地牢探索。",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

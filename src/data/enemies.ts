@@ -1,0 +1,82 @@
+import { EnemyData } from '../entities/Enemy';
+
+export const ENEMIES: Record<string, EnemyData> = {
+  slime: {
+    key: 'slime',
+    hp: 30,
+    speed: 40,
+    score: 10,
+    scale: 1.4,
+    bodySize: 12,
+    damage: 3,
+    behavior: 'chase',
+  },
+  bat: {
+    key: 'bat',
+    hp: 20,
+    speed: 80,
+    score: 15,
+    scale: 1.2,
+    bodySize: 10,
+    damage: 2,
+    behavior: 'zigzag',
+  },
+  goblin: {
+    key: 'goblin',
+    hp: 50,
+    speed: 60,
+    score: 25,
+    scale: 1.4,
+    bodySize: 12,
+    damage: 5,
+    behavior: 'dash',
+  },
+  skeleton: {
+    key: 'skeleton',
+    hp: 80,
+    speed: 45,
+    score: 40,
+    scale: 1.4,
+    bodySize: 12,
+    damage: 4,
+    behavior: 'ranged',
+  },
+  orc: {
+    key: 'orc',
+    hp: 150,
+    speed: 35,
+    score: 60,
+    scale: 1.8,
+    bodySize: 14,
+    damage: 8,
+    behavior: 'tank',
+  },
+  ghost: {
+    key: 'ghost',
+    hp: 60,
+    speed: 55,
+    score: 50,
+    scale: 1.5,
+    bodySize: 12,
+    damage: 6,
+    behavior: 'phase',
+  },
+  demon: {
+    key: 'demon',
+    hp: 500,
+    speed: 30,
+    score: 200,
+    scale: 2.2,
+    bodySize: 14,
+    damage: 12,
+    behavior: 'boss',
+  },
+};
+
+/** Enemies available per wave tier */
+export const WAVE_ENEMIES: Record<string, string[]> = {
+  easy: ['slime', 'bat'],
+  medium: ['slime', 'bat', 'goblin', 'skeleton'],
+  hard: ['goblin', 'skeleton', 'orc', 'ghost'],
+  boss: ['demon'],
+};

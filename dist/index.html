@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+  <!-- Primary Meta Tags -->
+  <title>地牢肉鸽 - Dungeon Roguelike | 像素风生存射击</title>
+  <meta name="description" content="地牢肉鸽 - 像素风Roguelike生存射击游戏。自动射击、随机技能组合、无尽地牢探索。每次开局都是全新体验，收集强力技能组合，挑战深层地牢！" />
+  <meta name="keywords" content="地牢肉鸽,roguelike,像素风,自动射击,生存射击,技能组合,地牢探索,像素游戏,肉鸽游戏,vampire survivors" />
+  <meta name="author" content="地牢肉鸽" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Theme & Mobile -->
+  <meta name="theme-color" content="#1a1a2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="地牢肉鸽" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <!-- Favicon (inline SVG pixel sword icon) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231a1a2e'/%3E%3Crect x='14' y='4' width='4' height='18' fill='%23ffdd44'/%3E%3Crect x='10' y='6' width='4' height='4' fill='%23ffdd44'/%3E%3Crect x='18' y='6' width='4' height='4' fill='%23ffdd44'/%3E%3Crect x='10' y='22' width='12' height='4' fill='%23888'/%3E%3Crect x='12' y='26' width='8' height='2' fill='%23666'/%3E%3C/svg%3E" />
+
+  <!-- Apple Touch Icon (referenced for home screen) -->
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+  <!-- Open Graph / WeChat / Weibo -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="地牢肉鸽 - 像素风Roguelike生存射击" />
+  <meta property="og:description" content="自动射击、随机技能组合、无尽地牢探索。每次开局都是全新体验，收集强力技能组合，挑战深层地牢！" />
+  <meta property="og:image" content="/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://dungeon-roguelike.app" />
+  <meta property="og:site_name" content="地牢肉鸽" />
+  <meta property="og:locale" content="zh_CN" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="地牢肉鸽 - 像素风Roguelike生存射击" />
+  <meta name="twitter:description" content="自动射击、随机技能组合、无尽地牢探索。每次开局都是全新体验！" />
+  <meta name="twitter:image" content="/og-image.png" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #1a1a2e;
+      /* Prevent iOS bounce/overscroll */
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+      /* Prevent text selection */
+      -webkit-user-select: none;
+      user-select: none;
+      /* Prevent touch callouts */
+      -webkit-touch-callout: none;
+      touch-action: none;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      touch-action: none;
+    }
+
+    /* Loading Screen */
+    #loading-screen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+    #loading-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .loading-title {
+      font-family: 'Courier New', monospace;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #ffdd44;
+      text-shadow: 0 0 20px rgba(255, 221, 68, 0.5), 0 0 40px rgba(255, 221, 68, 0.2);
+      letter-spacing: 0.15em;
+      animation: title-glow 2s ease-in-out infinite alternate;
+    }
+    .loading-subtitle {
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: #666680;
+      margin-top: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .loading-bar-container {
+      width: 200px;
+      height: 4px;
+      background: #2a2a4e;
+      border-radius: 2px;
+      margin-top: 2rem;
+      overflow: hidden;
+    }
+    .loading-bar {
+      height: 100%;
+      width: 30%;
+      background: #ffdd44;
+      border-radius: 2px;
+      animation: loading-slide 1.5s ease-in-out infinite;
+    }
+    .loading-hint {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #444460;
+      margin-top: 1.5rem;
+      letter-spacing: 0.1em;
+    }
+    @keyframes title-glow {
+      from { text-shadow: 0 0 20px rgba(255, 221, 68, 0.5), 0 0 40px rgba(255, 221, 68, 0.2); }
+      to   { text-shadow: 0 0 30px rgba(255, 221, 68, 0.8), 0 0 60px rgba(255, 221, 68, 0.3); }
+    }
+    @keyframes loading-slide {
+      0%   { transform: translateX(-100%); width: 40%; }
+      50%  { width: 70%; }
+      100% { transform: translateX(350%); width: 40%; }
+    }
+  </style>
+  <script type="module" crossorigin src="/assets/index-C8pn5XrO.js"></script>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-title">地牢肉鸽</div>
+    <div class="loading-subtitle">Dungeon Roguelike</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar"></div>
+    </div>
+    <div class="loading-hint">正在加载地牢...</div>
+  </div>
+
+  <script>
+    // Hide loading screen once game canvas is ready
+    function hideLoadingScreen() {
+      var el = document.getElementById('loading-screen');
+      if (el) {
+        el.classList.add('fade-out');
+        setTimeout(function() { el.remove(); }, 600);
+      }
+    }
+    // Fallback: hide after 5 seconds regardless
+    setTimeout(hideLoadingScreen, 5000);
+    // Also listen for game ready event
+    window.addEventListener('game-ready', hideLoadingScreen);
+  </script>
+</body>
+</html>
