@@ -178,7 +178,17 @@ export class SpawnSystem {
       return floorTiles[randInt(0, floorTiles.length - 1)];
     }
 
-    // Ultimate fallback: player position + offset
-    return { x: this.playerX + 100, y: this.playerY + 100 };
+    // Ultimate fallback: player position + offset, validated against grid
+    for (let offset = 64; offset < 300; offset += 32) {
+      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+        const fx = this.playerX + Math.cos(angle) * offset;
+        const fy = this.playerY + Math.sin(angle) * offset;
+        if (this.isFloor(fx, fy)) {
+          return { x: fx, y: fy };
+        }
+      }
+    }
+    // Absolute fallback: player position itself
+    return { x: this.playerX, y: this.playerY };
   }
 }

@@ -103,9 +103,15 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   applyEffect(effect: StatusEffect) {
     const existing = this.effects.find(e => e.type === effect.type);
     if (existing) {
-      existing.value = effect.value;
-      existing.duration = effect.duration;
-      existing.startTime = effect.startTime;
+      // Keep the stronger effect: higher slow value or longer remaining poison
+      const isStronger = effect.type === 'slow'
+        ? effect.value > existing.value
+        : effect.value > existing.value;
+      if (isStronger || effect.duration > existing.duration - (this.scene.time.now - existing.startTime)) {
+        existing.value = effect.value;
+        existing.duration = effect.duration;
+        existing.startTime = effect.startTime;
+      }
     } else {
       this.effects.push({ ...effect });
     }

@@ -339,8 +339,16 @@ export class GameScene extends Phaser.Scene {
       const dist = distance(this.player.x, this.player.y, pickup.x, pickup.y);
       if (dist < pickupRange) {
         const angle = Math.atan2(this.player.y - pickup.y, this.player.x - pickup.x);
-        pickup.x += Math.cos(angle) * 3;
-        pickup.y += Math.sin(angle) * 3;
+        const speed = 200 * (1 - dist / pickupRange);
+        const body = pickup.body as Phaser.Physics.Arcade.Body;
+        if (body) {
+          body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+        }
+      } else {
+        const body = pickup.body as Phaser.Physics.Arcade.Body;
+        if (body) {
+          body.setVelocity(0, 0);
+        }
       }
       pickup.update(time, delta);
     }
