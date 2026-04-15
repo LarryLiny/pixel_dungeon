@@ -61,4 +61,9 @@ export class WaveSystem {
     }
     return false;
   }
+
+  /** Check if more enemies can be spawned this wave (no side effect) */
+  canSpawnMore(): boolean {
+    return this.enemiesSpawned < this.waveConfig.enemyCount;
+  }
 }

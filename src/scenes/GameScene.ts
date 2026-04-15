@@ -293,7 +293,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    if (this.enemies.countActive() < 3) {
+    if (this.enemies.countActive() < 3 && this.waveSystem.canSpawnMore()) {
       this.spawnSystem.spawnEnemy(waveConfig);
     }
 
