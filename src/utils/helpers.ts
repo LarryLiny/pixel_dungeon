@@ -29,5 +29,6 @@ export function clamp(value: number, min: number, max: number): number {
 
 /** Pick a random element from an array */
 export function randomPick<T>(arr: T[]): T {
+  if (arr.length === 0) throw new Error('randomPick called with empty array');
   return arr[Math.floor(Math.random() * arr.length)];
 }

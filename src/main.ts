@@ -29,8 +29,8 @@ window.addEventListener('resize', () => {
 
 // Handle mobile viewport changes (address bar show/hide)
 if ('visualViewport' in window) {
-  (window as any).visualViewport.addEventListener('resize', () => {
-    const vv = (window as any).visualViewport;
+  window.visualViewport!.addEventListener('resize', () => {
+    const vv = window.visualViewport!;
     game.scale.resize(vv.width, vv.height);
   });
 }

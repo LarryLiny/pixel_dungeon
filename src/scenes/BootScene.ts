@@ -8,6 +8,7 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     generateAllTextures(this);
+    window.dispatchEvent(new Event('game-ready'));
     this.scene.start('MenuScene');
   }
 }

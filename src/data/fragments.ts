@@ -51,7 +51,7 @@ export const FRAGMENT_DEFS: Record<ItemRarity, FragmentDef> = {
     rarity: 'legendary',
     name: '金色碎片',
     color: '#ffaa00',
-    dropWaveRange: [18, 999],
+    dropWaveRange: [19, 999],
     dropRate: 0.02,
     requiredToUnlock: 20,
     unlockableRarities: ['legendary'],

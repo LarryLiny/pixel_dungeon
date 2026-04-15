@@ -429,6 +429,7 @@ export function getItemDef(id: string): ItemDef | undefined {
 export function getItemValue(id: string, level: number): number {
   const def = ALL_ITEMS[id];
   if (!def) return 0;
+  if (level <= 0) return 0;
   return def.levels[Math.min(level - 1, def.levels.length - 1)];
 }
 

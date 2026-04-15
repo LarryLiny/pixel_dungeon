@@ -21,8 +21,6 @@ export function getWaveConfig(waveNumber: number): WaveConfig {
     tiers = ['easy'];
   } else if (waveNumber <= 4) {
     tiers = ['easy', 'medium'];
-  } else if (waveNumber < 5) {
-    tiers = ['medium'];
   } else if (waveNumber % 5 === 0) {
     tiers = ['medium', 'hard', 'boss'];
   } else if (waveNumber <= 9) {
