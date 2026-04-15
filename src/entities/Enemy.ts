@@ -24,6 +24,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   maxHp: number;
   score: number;
   isAlive: boolean;
+  scored: boolean;
   effects: StatusEffect[];
   lastDashTime: number;
   lastShootTime: number;
@@ -46,6 +47,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.maxHp = enemyData.hp;
     this.score = enemyData.score;
     this.isAlive = true;
+    this.scored = false;
     this.effects = [];
     this.lastDashTime = 0;
     this.lastShootTime = 0;

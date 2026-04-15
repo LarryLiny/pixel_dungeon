@@ -77,10 +77,14 @@ export class GameScene extends Phaser.Scene {
 
     this.shootSystem = new AutoShootSystem(this, this.player, this.bullets);
     this.shootSystem.onOrbKill = (enemy: Enemy) => {
+      if (enemy.scored) return;
+      enemy.scored = true;
       this.scoreSystem.addKill(enemy.score);
       this.onEnemyKilled(enemy);
     };
     this.shootSystem.onWeaponKill = (enemy: Enemy) => {
+      if (enemy.scored) return;
+      enemy.scored = true;
       this.scoreSystem.addKill(enemy.score);
       this.onEnemyKilled(enemy);
       this.combatFeedback.onKill(false);
@@ -406,7 +410,8 @@ export class GameScene extends Phaser.Scene {
           const dy = enemy.y - oy;
           const len = Math.sqrt(dx * dx + dy * dy) || 1;
           enemy.setVelocity((dx / len) * 120, (dy / len) * 120);
-          if (!enemy.isAlive) {
+          if (!enemy.isAlive && !enemy.scored) {
+            enemy.scored = true;
             this.scoreSystem.addKill(enemy.score);
             this.onEnemyKilled(enemy);
           }
@@ -474,7 +479,8 @@ export class GameScene extends Phaser.Scene {
       this.chainLightning(enemy, bullet.damage * 0.5, bullet.chainCount, 100);
     }
 
-    if (!enemy.isAlive) {
+    if (!enemy.isAlive && !enemy.scored) {
+      enemy.scored = true;
       this.scoreSystem.addKill(enemy.score);
       this.onEnemyKilled(enemy);
       // Kill feedback
@@ -495,7 +501,8 @@ export class GameScene extends Phaser.Scene {
           .setDepth(9).setLineWidth(2);
         this.time.delayedCall(150, () => { if (line.active) line.destroy(); });
 
-        if (chainsLeft > 1 && !target.isAlive) {
+        if (chainsLeft > 1 && !target.isAlive && !target.scored) {
+          target.scored = true;
           this.scoreSystem.addKill(target.score);
           this.onEnemyKilled(target);
         }
