@@ -3,6 +3,7 @@ import { Player } from '../entities/Player';
 import { ScoreSystem } from '../systems/ScoreSystem';
 import { WaveSystem } from '../systems/WaveSystem';
 import { ALL_ITEMS, ItemCategory } from '../data/items';
+import { FUSION_RECIPES } from '../data/fusionRecipes';
 
 const CATEGORY_BG: Record<ItemCategory, number> = {
   weapon: 0x663311,
@@ -47,12 +48,30 @@ const ITEM_ICON_MAP: Record<string, string> = {
   holy_guard: 'icon_holy_guard',
 };
 
+/** Get icon key for an item, falling back to base category icon for fusion items */
+function getItemIconKey(itemId: string): string | null {
+  if (ITEM_ICON_MAP[itemId]) return ITEM_ICON_MAP[itemId];
+  // Fusion items: use first input's icon as fallback
+  const recipe = FUSION_RECIPES.find(r => r.output === itemId);
+  if (recipe) {
+    const firstInputIcon = ITEM_ICON_MAP[recipe.inputs[0]];
+    if (firstInputIcon) return firstInputIcon;
+  }
+  return null;
+}
+
 export class HUD {
   scene: Phaser.Scene;
   sw: number;
   sh: number;
   fontSize: number;
   smallFont: number;
+  maxSlots: number;
+  skillBarX: number;
+  skillBarY: number;
+  slotSize: number;
+  slotGap: number;
+  pad: number;
 
   hpBarBg: Phaser.GameObjects.Rectangle;
   hpBar: Phaser.GameObjects.Rectangle;
@@ -114,45 +133,69 @@ export class HUD {
       fontSize: `${this.smallFont}px`, color: '#88aa88', fontFamily: 'monospace',
     }).setDepth(50).setScrollFactor(0);
 
-    // Skill bar (bottom center)
+    // Skill bar (bottom center) — initially 5 slots, grows with fusion bonuses
+    this.maxSlots = 5;
+    this.pad = pad;
     const slotSize = Math.round(40 * scale);
     const slotGap = Math.round(5 * scale);
-    const skillBarW = 5 * (slotSize + slotGap) + slotGap;
+    this.slotSize = slotSize;
+    this.slotGap = slotGap;
+
+    const skillBarW = this.maxSlots * (slotSize + slotGap) + slotGap;
     const skillBarH = slotSize + slotGap * 2;
     const skillBarX = this.sw / 2 - skillBarW / 2;
     const skillBarY = this.sh - skillBarH - pad;
+    this.skillBarX = skillBarX;
+    this.skillBarY = skillBarY;
 
     this.skillBarBg = scene.add.rectangle(
       skillBarX, skillBarY, skillBarW, skillBarH, 0x111122, 0.9
     ).setOrigin(0, 0).setDepth(50).setScrollFactor(0)
       .setStrokeStyle(1, 0x444466, 0.6);
 
-    for (let i = 0; i < 5; i++) {
-      const x = skillBarX + slotGap + i * (slotSize + slotGap);
-      const y = skillBarY + slotGap;
-
-      const bg = scene.add.rectangle(x, y, slotSize, slotSize, 0x222244)
-        .setStrokeStyle(2, 0x444466).setDepth(51).setScrollFactor(0);
-
-      const catBg = scene.add.rectangle(x + 2, y + 2, slotSize - 4, slotSize - 4, 0x333355)
-        .setDepth(51.5).setScrollFactor(0).setVisible(false);
-
-      // Image icon (replaces text)
-      const iconScale = slotSize / 20; // icons are 16px, scale to fill slot
-      const image = scene.add.image(x + slotSize / 2, y + slotSize / 2, 'item_pickup')
-        .setScale(iconScale).setDepth(52).setScrollFactor(0).setVisible(false);
-
-      const level = scene.add.text(x + slotSize - 3, y + slotSize - 3, '', {
-        fontSize: `${Math.max(9, Math.round(10 * scale))}px`,
-        color: '#ffdd44', fontFamily: 'monospace', fontStyle: 'bold',
-        backgroundColor: '#000000cc', padding: { x: 3, y: 1 },
-      }).setOrigin(1, 1).setDepth(53).setScrollFactor(0);
-
-      this.skillIcons.push({ bg, catBg, image, level });
+    for (let i = 0; i < this.maxSlots; i++) {
+      this.createSkillSlot(skillBarX + slotGap + i * (slotSize + slotGap), skillBarY + slotGap, slotSize, scale);
     }
   }
 
+  private createSkillSlot(x: number, y: number, slotSize: number, scale: number) {
+    const bg = this.scene.add.rectangle(x, y, slotSize, slotSize, 0x222244)
+      .setStrokeStyle(2, 0x444466).setDepth(51).setScrollFactor(0);
+
+    const catBg = this.scene.add.rectangle(x + 2, y + 2, slotSize - 4, slotSize - 4, 0x333355)
+      .setDepth(51.5).setScrollFactor(0).setVisible(false);
+
+    const iconScale = slotSize / 20;
+    const image = this.scene.add.image(x + slotSize / 2, y + slotSize / 2, 'item_pickup')
+      .setScale(iconScale).setDepth(52).setScrollFactor(0).setVisible(false);
+
+    const level = this.scene.add.text(x + slotSize - 3, y + slotSize - 3, '', {
+      fontSize: `${Math.max(9, Math.round(10 * scale))}px`,
+      color: '#ffdd44', fontFamily: 'monospace', fontStyle: 'bold',
+      backgroundColor: '#000000cc', padding: { x: 3, y: 1 },
+    }).setOrigin(1, 1).setDepth(53).setScrollFactor(0);
+
+    this.skillIcons.push({ bg, catBg, image, level });
+  }
+
   update(player: Player, scoreSystem: ScoreSystem, waveSystem: WaveSystem, time: number) {
+    // Expand skill bar if player has more skills than current slots
+    const neededSlots = Math.max(5, player.skills.length);
+    if (neededSlots > this.maxSlots) {
+      const scale = Math.min(this.sw / 800, this.sh / 600);
+      for (let i = this.maxSlots; i < neededSlots; i++) {
+        const x = this.skillBarX + this.slotGap + i * (this.slotSize + this.slotGap);
+        const y = this.skillBarY + this.slotGap;
+        this.createSkillSlot(x, y, this.slotSize, scale);
+      }
+      this.maxSlots = neededSlots;
+
+      // Resize background bar
+      const newBarW = this.maxSlots * (this.slotSize + this.slotGap) + this.slotGap;
+      this.skillBarBg.width = newBarW;
+      this.skillBarBg.x = this.sw / 2 - newBarW / 2;
+    }
+
     const hpRatio = player.hp / player.maxHp;
     const scale = Math.min(this.sw / 800, this.sh / 600);
     const hpBarW = Math.round(150 * scale);
@@ -165,7 +208,7 @@ export class HUD {
     const remaining = Math.ceil(waveSystem.getRemainingTime(time) / 1000);
     this.timerText.setText(`下一波: ${remaining}s`);
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < this.maxSlots; i++) {
       const slot = this.skillIcons[i];
       if (i < player.skills.length) {
         const skill = player.skills[i];
@@ -177,7 +220,7 @@ export class HUD {
           slot.bg.setStrokeStyle(2, CATEGORY_BORDER[cat]);
 
           // Show graphical icon
-          const iconKey = ITEM_ICON_MAP[skill.id];
+          const iconKey = getItemIconKey(skill.id);
           if (iconKey && this.scene.textures.exists(iconKey)) {
             slot.image.setTexture(iconKey);
             slot.image.setVisible(true);
