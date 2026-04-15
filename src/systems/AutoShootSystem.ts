@@ -37,6 +37,7 @@ export class AutoShootSystem {
   // Laser beam
   laserGraphics: Phaser.GameObjects.Graphics | null = null;
   laserTarget: Enemy | null = null;
+  photonImpactCircle: Phaser.GameObjects.Arc | null = null;
 
   // Lightning system
   lightningGraphics: Phaser.GameObjects.Graphics | null = null;
@@ -929,23 +930,35 @@ export class AutoShootSystem {
     this.laserGraphics.lineStyle(2, 0xffffff, 0.9);
     this.laserGraphics.lineBetween(this.player.x, this.player.y, nearest.x, nearest.y);
 
-    // Photon cannon: pulsing glow on target
+    // Photon cannon: pulsing glow on target (reuse single circle)
     if (isPhoton && nearest.active) {
       const pulseAlpha = 0.3 + Math.sin(time / 50) * 0.2;
-      const impactCircle = this.scene.add.circle(
-        nearest.x, nearest.y, 8, 0xffaaff, pulseAlpha,
-      ).setDepth(9);
-      this.scene.tweens.add({
-        targets: impactCircle,
-        alpha: 0, scaleX: 2, scaleY: 2,
-        duration: 150, onComplete: () => impactCircle.destroy(),
-      });
+      if (!this.photonImpactCircle) {
+        this.photonImpactCircle = this.scene.add.circle(
+          nearest.x, nearest.y, 8, 0xffaaff, pulseAlpha,
+        ).setDepth(9);
+      } else {
+        this.photonImpactCircle.setPosition(nearest.x, nearest.y);
+        this.photonImpactCircle.setAlpha(pulseAlpha);
+        this.photonImpactCircle.setScale(1);
+      }
+      this.laserTarget = nearest;
+    } else {
+      if (this.photonImpactCircle) {
+        this.photonImpactCircle.destroy();
+        this.photonImpactCircle = null;
+      }
+      this.laserTarget = null;
     }
   }
 
   private clearLaser() {
     if (this.laserGraphics) {
       this.laserGraphics.clear();
+    }
+    if (this.photonImpactCircle) {
+      this.photonImpactCircle.destroy();
+      this.photonImpactCircle = null;
     }
   }
 
