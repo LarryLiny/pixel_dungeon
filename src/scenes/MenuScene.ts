@@ -12,7 +12,7 @@ export class MenuScene extends Phaser.Scene {
 
     // Title
     const titleSize = Math.max(28, Math.min(48, Math.round(width * 0.06)));
-    this.add.text(width / 2, height * 0.2, '地牢肉鸽', {
+    this.add.text(width / 2, height * 0.2, '像素地牢', {
       fontSize: `${titleSize}px`,
       color: '#ffdd44',
       fontFamily: 'monospace',
@@ -20,7 +20,7 @@ export class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     const subSize = Math.max(12, Math.round(width * 0.02));
-    this.add.text(width / 2, height * 0.2 + titleSize + 10, 'Dungeon Roguelike', {
+    this.add.text(width / 2, height * 0.2 + titleSize + 10, 'Pixel Dungeon', {
       fontSize: `${subSize}px`,
       color: '#8888aa',
       fontFamily: 'monospace',
