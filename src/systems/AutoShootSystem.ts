@@ -1039,6 +1039,7 @@ export class AutoShootSystem {
   applyRepulse(enemies: Enemy[]) {
     const radius = this.player.modifiers.repulseRadius;
     if (radius <= 0) return;
+    const now = this.scene.time.now;
 
     for (const enemy of enemies) {
       if (!enemy.isAlive || !enemy.active) continue;
@@ -1050,7 +1051,11 @@ export class AutoShootSystem {
         const ny = dy / dist;
         const pushForce = 200 * (1 - dist / radius);
         enemy.setVelocity(nx * pushForce, ny * pushForce);
-        enemy.takeDamage(3);
+        // Only damage once per second to avoid rapid HP drain + overlap feedback
+        if (!(enemy as any)._lastRepulseDmg || now - (enemy as any)._lastRepulseDmg > 1000) {
+          (enemy as any)._lastRepulseDmg = now;
+          enemy.takeDamage(3);
+        }
       }
     }
   }
