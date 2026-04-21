@@ -8,16 +8,20 @@ import { SpawnSystem } from '../systems/SpawnSystem';
 import { ItemSystem } from '../systems/ItemSystem';
 import { FusionSystem } from '../systems/FusionSystem';
 import { FragmentSystem } from '../systems/FragmentSystem';
+import { GoldSystem } from '../systems/GoldSystem';
+import { UpgradeSystem } from '../systems/UpgradeSystem';
+import { DailyChallengeSystem } from '../systems/DailyChallengeSystem';
 import { CombatFeedbackSystem } from '../systems/CombatFeedbackSystem';
 import { ALL_ITEMS, ITEM_IDS } from '../data/items';
 import { WaveSystem } from '../systems/WaveSystem';
 import { ScoreSystem } from '../systems/ScoreSystem';
+import { StorySystem, getEndingText } from '../systems/StorySystem';
 import { VirtualJoystick } from '../ui/VirtualJoystick';
 import { HUD } from '../ui/HUD';
 import {
   TILE_SIZE, MAP_COLS, MAP_ROWS, MAP_WIDTH, MAP_HEIGHT,
   PICKUP_SPAWN_INTERVAL, MAX_BULLETS,
-  SKILL_DROP_CHANCE, POTION_DROP_CHANCE,
+  SKILL_DROP_CHANCE, POTION_DROP_CHANCE, PLAYER_MAX_HP,
 } from '../constants';
 import { distance, randFloat, randInt } from '../utils/helpers';
 
@@ -38,6 +42,9 @@ export class GameScene extends Phaser.Scene {
   combatFeedback!: CombatFeedbackSystem;
   waveSystem!: WaveSystem;
   scoreSystem!: ScoreSystem;
+  storySystem!: StorySystem;
+  goldSystem!: GoldSystem;
+  dailyChallengeSystem!: DailyChallengeSystem;
   hud!: HUD;
   joystick!: VirtualJoystick;
 
@@ -45,9 +52,9 @@ export class GameScene extends Phaser.Scene {
   lastEnemySpawn: number = 0;
   lastPickupSpawn: number = 0;
   gameTime: number = 0;
-  messageText!: Phaser.GameObjects.Text;
   cleanupTimer: number = 0;
   fusionCheckTimer: number = 0;
+  deathHandled: boolean = false;
 
   // Stacking message system
   messageQueue: { text: Phaser.GameObjects.Text; age: number; duration: number }[] = [];
@@ -63,6 +70,7 @@ export class GameScene extends Phaser.Scene {
     this.lastPickupSpawn = 0;
     this.cleanupTimer = 0;
     this.fusionCheckTimer = 0;
+    this.deathHandled = false;
 
     this.physics.world.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
@@ -104,6 +112,21 @@ export class GameScene extends Phaser.Scene {
     this.combatFeedback = new CombatFeedbackSystem(this);
     this.waveSystem = new WaveSystem(this);
     this.scoreSystem = new ScoreSystem();
+    this.storySystem = new StorySystem();
+    this.goldSystem = new GoldSystem();
+    this.dailyChallengeSystem = new DailyChallengeSystem();
+
+    // Apply permanent upgrade bonuses to player
+    const upgradeSystem = new UpgradeSystem();
+    const bonuses = upgradeSystem.getPermanentBonuses();
+    if (bonuses['maxHp']) this.player.maxHp = Math.round(PLAYER_MAX_HP * (1 + bonuses['maxHp']));
+    if (bonuses['maxHp']) this.player.hp = this.player.maxHp;
+    if (bonuses['speed']) this.player.modifiers.speedMul *= (1 + bonuses['speed']);
+    if (bonuses['pickupRange']) this.player.modifiers.pickupRange *= (1 + bonuses['pickupRange']);
+    if (bonuses['damage']) this.player.modifiers.damageMul *= (1 + bonuses['damage']);
+    if (bonuses['luck']) this.player.modifiers.luckyDropMul *= (1 + bonuses['luck']);
+    if (bonuses['startingShots']) this.player.modifiers.shotCount += bonuses['startingShots'];
+
     this.waveSystem.start(this.time.now);
 
     this.physics.add.overlap(this.bullets, this.enemies, this.onBulletHitEnemy as any, undefined, this);
@@ -118,13 +141,35 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
 
-    // Message display area (center-top of screen)
-    this.messageText = this.add.text(this.scale.width / 2, 60, '', {
-      fontSize: '16px', color: '#ffdd44', fontFamily: 'monospace',
-    }).setOrigin(0.5, 0).setDepth(200).setScrollFactor(0).setVisible(false);
-
     this.waveSystem.onWaveStart = (wave: number) => {
       this.showMessage(`第 ${wave} 波开始!`, 2000);
+      // Wave announcement overlay
+      const w = this.scale.width;
+      const h = this.scale.height;
+      const waveText = this.add.text(w / 2, h / 2 - 30, `第 ${wave} 波`, {
+        fontSize: `${Math.max(20, Math.min(28, Math.round(w * 0.035)))}px`,
+        color: '#ffdd44', fontFamily: 'monospace', fontStyle: 'bold',
+        stroke: '#000', strokeThickness: 4,
+      }).setOrigin(0.5).setDepth(300).setScrollFactor(0).setAlpha(0);
+      this.tweens.add({
+        targets: waveText,
+        alpha: 1, y: h / 2 - 50,
+        duration: 300, ease: 'Back.easeOut',
+        onComplete: () => {
+          this.tweens.add({
+            targets: waveText,
+            alpha: 0, y: h / 2 - 80,
+            duration: 700, delay: 800,
+            onComplete: () => { if (waveText.active) waveText.destroy(); },
+          });
+        },
+      });
+      this.dailyChallengeSystem.trackEvent('reach_wave', { wave });
+      // Narrative event for this wave
+      const storyText = this.storySystem.onWave(wave);
+      if (storyText) {
+        this.time.delayedCall(1200, () => this.showStoryMessage(storyText));
+      }
     };
 
     this.setupKeyboard();
@@ -313,10 +358,11 @@ export class GameScene extends Phaser.Scene {
       this.checkAndAutoFuse();
     }
 
-    // Update enemies
-    const enemyChildren = this.enemies.getChildren().filter(e => (e as any).active) as any[];
-    for (const enemy of enemyChildren) {
-      if (enemy.isAlive) {
+    // Update enemies — use getChildren() directly to avoid per-frame array allocation
+    const enemyChildren = this.enemies.getChildren() as any[];
+    for (let i = 0; i < enemyChildren.length; i++) {
+      const enemy = enemyChildren[i];
+      if (enemy.active && enemy.isAlive) {
         enemy.update(time, delta, this.player.x, this.player.y);
       }
     }
@@ -332,10 +378,12 @@ export class GameScene extends Phaser.Scene {
       this.updateShieldOrbs(time, enemyChildren as Enemy[]);
     }
 
-    // Magnet pickups
+    // Magnet pickups — iterate directly, no filter
     const pickupRange = this.itemSystem.getPickupRange();
-    const activePickups = this.pickups.getChildren().filter(p => (p as any).active) as any[];
-    for (const pickup of activePickups) {
+    const allPickups = this.pickups.getChildren() as any[];
+    for (let i = 0; i < allPickups.length; i++) {
+      const pickup = allPickups[i];
+      if (!pickup.active) continue;
       const dist = distance(this.player.x, this.player.y, pickup.x, pickup.y);
       if (dist < pickupRange) {
         const angle = Math.atan2(this.player.y - pickup.y, this.player.x - pickup.x);
@@ -362,7 +410,8 @@ export class GameScene extends Phaser.Scene {
     // Update combat feedback (slow-mo timers etc.)
     this.combatFeedback.update(delta);
 
-    if (!this.player.isAlive) {
+    if (!this.player.isAlive && !this.deathHandled) {
+      this.deathHandled = true;
       this.onPlayerDeath();
     }
   }
@@ -377,6 +426,13 @@ export class GameScene extends Phaser.Scene {
     if (result.success && result.recipe) {
       this.showMessage(result.message, 3000);
       this.createFusionEffect();
+      // Narrative: first fusion / legendary fusion
+      const outputDef = ALL_ITEMS[result.recipe.output];
+      const isLegendary = outputDef?.rarity === 'legendary';
+      const storyText = this.storySystem.onFusion(isLegendary);
+      if (storyText) {
+        this.time.delayedCall(1500, () => this.showStoryMessage(storyText));
+      }
     }
   }
 
@@ -540,6 +596,20 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.createDeathEffect(enemy.x, enemy.y);
+
+    // Narrative: first encounter with enemy type
+    const enemyKey = enemy.enemyData.key;
+    const enemyStory = this.storySystem.onEnemyFirst(enemyKey);
+    if (enemyStory) {
+      this.time.delayedCall(800, () => this.showStoryMessage(enemyStory));
+    }
+    // Narrative: first boss (demon) kill
+    if (enemyKey === 'demon') {
+      const bossStory = this.storySystem.onBossKill();
+      if (bossStory) {
+        this.time.delayedCall(1200, () => this.showStoryMessage(bossStory));
+      }
+    }
   }
 
   createDeathEffect(x: number, y: number) {
@@ -563,6 +633,13 @@ export class GameScene extends Phaser.Scene {
       this.showMessage(result.message, result.success ? 1500 : 1000);
       if (result.success) {
         this.combatFeedback.levelUpFlash();
+        this.combatFeedback.levelUpRing(this.player.x, this.player.y);
+        // Show skill name popup with category color
+        const def = ALL_ITEMS[pickup.itemId];
+        if (def) {
+          const colorNum = parseInt(def.color.replace('#', ''), 16);
+          this.combatFeedback.skillAcquired(this.player.x, this.player.y, def.name, colorNum);
+        }
       }
     } else if (pickup.pickupType === 'potion') {
       this.player.heal(this.player.maxHp * 0.3);
@@ -598,6 +675,24 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.cameras.main.shake(100, 0.005);
+  }
+
+  /** Show a narrative story message (purple-tinted to distinguish from system messages) */
+  showStoryMessage(text: string) {
+    const fontSize = Math.max(13, Math.min(16, Math.round(this.scale.width * 0.02)));
+    const msgText = this.add.text(this.scale.width / 2, 60, text, {
+      fontSize: `${fontSize}px`, color: '#cc99ff', fontFamily: 'monospace',
+      fontStyle: 'italic',
+      backgroundColor: '#000000cc', padding: { x: 8, y: 3 },
+    }).setOrigin(0.5, 0).setDepth(200).setScrollFactor(0).setAlpha(1);
+
+    this.messageQueue.push({ text: msgText, age: 0, duration: 4000 });
+    this.relayoutMessages();
+    while (this.messageQueue.length > this.maxMessages) {
+      const old = this.messageQueue.shift()!;
+      old.text.destroy();
+    }
+    this.relayoutMessages();
   }
 
   showMessage(text: string, duration: number) {
@@ -647,6 +742,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   onPlayerDeath() {
+    // Award run gold
+    const runGold = this.goldSystem.calculateRunGold(
+      this.scoreSystem.getScore(),
+      this.scoreSystem.getKillCount(),
+      this.waveSystem.currentWave,
+    );
+    this.goldSystem.addGold(runGold);
+
     this.physics.pause();
     this.cameras.main.flash(500, 255, 0, 0);
 
@@ -656,7 +759,18 @@ export class GameScene extends Phaser.Scene {
         kills: this.scoreSystem.getKillCount(),
         wave: this.waveSystem.currentWave,
         skills: this.player.skills.map(s => ({ id: s.id, level: s.level })),
+        endingText: getEndingText(this.waveSystem.currentWave),
       });
     });
+  }
+
+  shutdown() {
+    this.shootSystem.destroy();
+    this.combatFeedback.destroy();
+    this.hud.destroy();
+    for (const orb of this.shieldOrbSprites) {
+      if (orb.active) orb.destroy();
+    }
+    this.shieldOrbSprites = [];
   }
 }

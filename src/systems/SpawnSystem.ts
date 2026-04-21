@@ -18,6 +18,7 @@ export class SpawnSystem {
   playerY: number;
   grid: number[][]; // dungeon grid: 0=floor, 1=wall
   unlockedItems: Set<string>;
+  private cachedFloorTiles: { x: number; y: number }[] | null = null;
 
   constructor(
     scene: Phaser.Scene,
@@ -158,24 +159,30 @@ export class SpawnSystem {
       }
     }
 
-    // Fallback: find any random floor tile
-    const floorTiles: { x: number; y: number }[] = [];
-    for (let row = 2; row < MAP_ROWS - 2; row++) {
-      for (let col = 2; col < MAP_COLS - 2; col++) {
-        if (this.grid[row][col] === 0) {
-          const px = col * TILE_SIZE + TILE_SIZE / 2;
-          const py = row * TILE_SIZE + TILE_SIZE / 2;
-          const dx = px - this.playerX;
-          const dy = py - this.playerY;
-          if (dx * dx + dy * dy > 200 * 200) {
-            floorTiles.push({ x: px, y: py });
+    // Fallback: use cached floor tiles
+    if (!this.cachedFloorTiles) {
+      this.cachedFloorTiles = [];
+      for (let row = 2; row < MAP_ROWS - 2; row++) {
+        for (let col = 2; col < MAP_COLS - 2; col++) {
+          if (this.grid[row][col] === 0) {
+            this.cachedFloorTiles.push({
+              x: col * TILE_SIZE + TILE_SIZE / 2,
+              y: row * TILE_SIZE + TILE_SIZE / 2,
+            });
           }
         }
       }
     }
 
-    if (floorTiles.length > 0) {
-      return floorTiles[randInt(0, floorTiles.length - 1)];
+    // Filter to tiles far enough from player
+    const farTiles = this.cachedFloorTiles.filter(t => {
+      const dx = t.x - this.playerX;
+      const dy = t.y - this.playerY;
+      return dx * dx + dy * dy > 200 * 200;
+    });
+
+    if (farTiles.length > 0) {
+      return farTiles[randInt(0, farTiles.length - 1)];
     }
 
     // Ultimate fallback: player position + offset, validated against grid

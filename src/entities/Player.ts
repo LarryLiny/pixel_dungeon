@@ -20,8 +20,9 @@ export interface PlayerModifiers {
   chainCount: number;
   healPerTick: number;
   healInterval: number;
-  // Weapon system
-  weaponType: string;
+  // Weapon system — split into active (firing) and passive (always-on effect)
+  activeWeapon: string;
+  passiveWeapon: string;
   bulletSpeedMul: number;
   bulletSizeMul: number;
   splashRadius: number;
@@ -64,7 +65,8 @@ export function defaultModifiers(): PlayerModifiers {
     chainCount: 0,
     healPerTick: 0,
     healInterval: 5000,
-    weaponType: 'basic_shot',
+    activeWeapon: 'basic_shot',
+    passiveWeapon: '',
     bulletSpeedMul: 1.0,
     bulletSizeMul: 1.0,
     splashRadius: 0,
@@ -77,7 +79,7 @@ export function defaultModifiers(): PlayerModifiers {
     ghostStepInterval: 8000,
     magnetRange: 0,
     reflectChance: 0,
-    holyGuardThreshold: 0.2,
+    holyGuardThreshold: 0,
     holyGuardHealRatio: 0,
     executeThreshold: 0,
     swordArcAngle: 0,
@@ -138,6 +140,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   update(time: number, _delta: number) {
     if (!this.isAlive) return;
 
+    // Set player velocity
     const speed = PLAYER_SPEED * this.modifiers.speedMul;
     this.setVelocity(this.moveDir.x * speed, this.moveDir.y * speed);
 

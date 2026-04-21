@@ -1,5 +1,19 @@
 import Phaser from 'phaser';
-import { BULLET_SPEED, BULLET_SIZE, BULLET_DAMAGE, BULLET_RANGE } from '../constants';
+import { BULLET_SPEED, BULLET_SIZE, BULLET_DAMAGE } from '../constants';
+
+/** Map weapon type to bullet texture key */
+const WEAPON_BULLET_TEXTURE: Record<string, string> = {
+  shotgun: 'bullet_shotgun',
+  freeze_shotgun: 'bullet_freeze',
+  boomerang: 'bullet_boomerang',
+  death_wheel: 'bullet_boomerang',
+  poison_snake: 'bullet_poison',
+  plague_bomb: 'bullet_poison',
+  death_scythe: 'bullet_scythe',
+  soul_reaper: 'bullet_soul',
+  mega_blaster: 'bullet_mega',
+  fragment_bomb: 'bullet_fragment',
+};
 
 export class Bullet extends Phaser.Physics.Arcade.Sprite {
   damage: number;
@@ -11,8 +25,8 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
   poisonDuration: number;
   chainCount: number;
   splashRadius: number;
-  originX: number;
-  originY: number;
+  spawnX: number;
+  spawnY: number;
 
   // Boomerang support
   returning: boolean;
@@ -34,8 +48,8 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.poisonDuration = 0;
     this.chainCount = 0;
     this.splashRadius = 0;
-    this.originX = x;
-    this.originY = y;
+    this.spawnX = x;
+    this.spawnY = y;
     this.returning = false;
     this.maxDistance = 250;
     this.returnSpeed = 400;
@@ -43,16 +57,20 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.executeThreshold = 0;
     this.playerRef = null;
 
-    this.setScale(1.2);
+    this.setScale(1.5);
     this.setDepth(8);
   }
 
   fire(targetX: number, targetY: number, damage: number, angle: number = 0, speed: number = BULLET_SPEED) {
     this.damage = damage;
-    this.originX = this.x;
-    this.originY = this.y;
+    this.spawnX = this.x;
+    this.spawnY = this.y;
     this.pierceCount = 0;
     this.returning = false;
+
+    // Set weapon-specific bullet texture
+    const tex = WEAPON_BULLET_TEXTURE[this.weaponType] || 'bullet';
+    if (this.texture.key !== tex) this.setTexture(tex);
 
     const dx = targetX - this.x;
     const dy = targetY - this.y;
@@ -80,8 +98,8 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     if (!this.active || !this.playerRef) return;
     if (this.weaponType !== 'boomerang' && this.weaponType !== 'death_wheel') return;
 
-    const dx = this.x - this.originX;
-    const dy = this.y - this.originY;
+    const dx = this.x - this.spawnX;
+    const dy = this.y - this.spawnY;
     const distFromOrigin = Math.sqrt(dx * dx + dy * dy);
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (!body) return;
@@ -113,7 +131,7 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
 
       // Gradually shrink as it gets closer
       const shrinkFactor = Math.max(0.4, toPlayerLen / this.maxDistance);
-      this.setScale(shrinkFactor * 1.2);
+      this.setScale(shrinkFactor * 1.5);
     }
   }
 

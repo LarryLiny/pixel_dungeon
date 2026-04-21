@@ -3,14 +3,12 @@ import { randFloat } from '../utils/helpers';
 
 /**
  * CombatFeedbackSystem — manages hit/kill visual feedback
- * Screen shake, damage numbers, kill slow-mo, death particles, knockback
+ * Screen shake, damage numbers, death particles, knockback
  */
 export class CombatFeedbackSystem {
   scene: Phaser.Scene;
   camera: Phaser.Cameras.Scene2D.Camera;
   damageTexts: Phaser.GameObjects.Text[] = [];
-  slowMoTimer: number = 0;
-  slowMoDuration: number = 0;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -19,15 +17,6 @@ export class CombatFeedbackSystem {
 
   /** Call every frame */
   update(delta: number) {
-    // Update slow-mo
-    if (this.slowMoTimer > 0) {
-      this.slowMoTimer -= delta;
-      if (this.slowMoTimer <= 0) {
-        this.scene.physics.world.timeScale = 1.0;
-        this.slowMoTimer = 0;
-      }
-    }
-
     // Cleanup old damage texts
     this.damageTexts = this.damageTexts.filter(t => t.active);
   }
@@ -67,13 +56,12 @@ export class CombatFeedbackSystem {
 
   /** Kill slow-motion effect (brief time scale reduction) */
   onKill(heavy: boolean = false) {
-    const duration = heavy ? 150 : 80;
-    const scale = heavy ? 0.3 : 0.5;
-    this.scene.physics.world.timeScale = scale;
-    this.slowMoTimer = duration;
-
-    // Flash white
+    // Visual-only kill feedback: camera flash + shake (NO physics timeScale)
+    const duration = heavy ? 120 : 60;
     this.camera.flash(duration, 255, 255, 255, true, undefined as any, this.scene);
+    if (heavy) {
+      this.camera.shake(80, 0.005);
+    }
   }
 
   /** Enhanced death particle explosion */
@@ -116,20 +104,48 @@ export class CombatFeedbackSystem {
   levelUpFlash() {
     // Gentle white flash only, no shake
     this.camera.flash(250, 255, 255, 150, true, undefined as any, this.scene);
+  }
 
-    // Expanding golden ring at player position
-    const player = (this.scene as any).player;
-    if (player) {
-      const ring = this.scene.add.circle(player.x, player.y, 10, 0xffdd44, 0.4).setDepth(100);
+  /** Skill acquired — dramatic reveal with starburst + floating name */
+  skillAcquired(x: number, y: number, skillName: string, color: number) {
+    // Starburst particles
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const particle = this.scene.add.rectangle(x, y, 3, 3, color).setDepth(100);
+      this.scene.tweens.add({
+        targets: particle,
+        x: x + Math.cos(angle) * 35,
+        y: y + Math.sin(angle) * 35,
+        alpha: 0,
+        duration: 400,
+        onComplete: () => { if (particle.active) particle.destroy(); },
+      });
+    }
+
+    // Floating skill name
+    const colorHex = '#' + color.toString(16).padStart(6, '0');
+    const nameText = this.scene.add.text(x, y - 20, skillName, {
+      fontSize: '14px', color: colorHex, fontFamily: 'monospace', fontStyle: 'bold',
+      stroke: '#000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(200).setScrollFactor(1);
+    this.scene.tweens.add({
+      targets: nameText,
+      y: y - 55, alpha: 0,
+      duration: 1200,
+      onComplete: () => { if (nameText.active) nameText.destroy(); },
+    });
+  }
+
+  /** Level-up ring at player position (called externally with coords) */
+  levelUpRing(x: number, y: number) {
+    const ring = this.scene.add.circle(x, y, 10, 0xffdd44, 0.4).setDepth(100);
       this.scene.tweens.add({
         targets: ring,
         scaleX: 8,
         scaleY: 8,
         alpha: 0,
-        duration: 500,
         onComplete: () => { if (ring.active) ring.destroy(); },
       });
-    }
   }
 
   /** Fusion effect — even bigger than level up */
@@ -151,5 +167,13 @@ export class CombatFeedbackSystem {
         });
       });
     }
+  }
+
+  /** Clean up resources on scene shutdown */
+  destroy() {
+    for (const t of this.damageTexts) {
+      if (t.active) t.destroy();
+    }
+    this.damageTexts = [];
   }
 }

@@ -24,6 +24,8 @@ export class FusionSystem {
 
   /** Execute a fusion — remove two items, add fused result */
   executeFusion(recipeId: string, indexA: number, indexB: number): FusionResult {
+    // Re-validate that the skills at the given indices still match the recipe
+    const skills = this.player.skills;
     const possible = this.checkFusions();
     const match = possible.find(f => f.recipe.id === recipeId && f.indexA === indexA && f.indexB === indexB);
 
@@ -31,7 +33,18 @@ export class FusionSystem {
       return { success: false, recipe: null, message: '无法融合' };
     }
 
-    const { recipe } = match;
+    // Double-check the actual skills at those indices still match
+    const skillA = skills[indexA];
+    const skillB = skills[indexB];
+    if (!skillA || !skillB) {
+      return { success: false, recipe: null, message: '无法融合' };
+    }
+    const recipe = match.recipe;
+    const inputIds = [recipe.inputs[0], recipe.inputs[1]];
+    const skillIds = [skillA.id, skillB.id];
+    if (!(inputIds.includes(skillIds[0]) && inputIds.includes(skillIds[1]))) {
+      return { success: false, recipe: null, message: '无法融合' };
+    }
 
     // Remove the higher index first to avoid shifting issues
     const indices = [indexA, indexB].sort((a, b) => b - a);

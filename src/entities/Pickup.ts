@@ -19,6 +19,58 @@ const FRAGMENT_TEXTURE_KEY: Record<ItemRarity, string> = {
   legendary: 'fragment_legendary',
 };
 
+/** Map item id → icon texture key (same mapping as HUD) */
+const ITEM_ICON_MAP: Record<string, string> = {
+  basic_shot: 'icon_basic_shot',
+  shotgun: 'icon_shotgun',
+  fireball_orbit: 'icon_fireball_orbit',
+  boomerang: 'icon_boomerang',
+  lightning: 'icon_lightning',
+  sword_slash: 'icon_sword_slash',
+  ice_wave: 'icon_ice_wave',
+  poison_snake: 'icon_poison_snake',
+  laser_beam: 'icon_laser_beam',
+  death_scythe: 'icon_death_scythe',
+  power: 'icon_power',
+  bullet_speed: 'icon_bullet_speed',
+  bullet_size: 'icon_bullet_size',
+  splash: 'icon_splash',
+  chain_enhance: 'icon_chain_enhance',
+  pierce_core: 'icon_pierce_core',
+  barrage: 'icon_barrage',
+  attack_speed: 'icon_attack_speed',
+  lucky_star: 'icon_lucky_star',
+  shield_orbit: 'icon_shield_orbit',
+  repulse: 'icon_repulse',
+  heal_cloak: 'icon_heal_cloak',
+  swiftness: 'icon_swiftness',
+  armor: 'icon_armor',
+  ghost_step: 'icon_ghost_step',
+  magnet: 'icon_magnet',
+  reflect_mirror: 'icon_reflect_mirror',
+  holy_guard: 'icon_holy_guard',
+  freeze_shotgun: 'icon_freeze_shotgun',
+  hellfire: 'icon_hellfire',
+  death_wheel: 'icon_death_wheel',
+  mega_blaster: 'icon_mega_blaster',
+  thunder_slash: 'icon_thunder_slash',
+  fragment_bomb: 'icon_fragment_bomb',
+  thunderstorm: 'icon_thunderstorm',
+  tracking_fireball: 'icon_tracking_fireball',
+  frost_storm: 'icon_frost_storm',
+  plague_bomb: 'icon_plague_bomb',
+  sun_storm: 'icon_sun_storm',
+  photon_cannon: 'icon_photon_cannon',
+  soul_reaper: 'icon_soul_reaper',
+  wind_runner: 'icon_wind_runner',
+  shield_bash: 'icon_shield_bash',
+  void_walker: 'icon_void_walker',
+  black_hole: 'icon_black_hole',
+  absolute_defense: 'icon_absolute_defense',
+  angel_embrace: 'icon_angel_embrace',
+  nuclear_core: 'icon_nuclear_core',
+};
+
 export class Pickup extends Phaser.Physics.Arcade.Sprite {
   pickupType: PickupType;
   itemId: string | null;
@@ -40,7 +92,7 @@ export class Pickup extends Phaser.Physics.Arcade.Sprite {
   ) {
     let textureKey: string;
     if (type === 'item') {
-      textureKey = 'item_pickup';
+      textureKey = (itemId && ITEM_ICON_MAP[itemId]) || 'item_pickup';
     } else if (type === 'fragment') {
       textureKey = FRAGMENT_TEXTURE_KEY[fragmentRarity || 'common'];
     } else {

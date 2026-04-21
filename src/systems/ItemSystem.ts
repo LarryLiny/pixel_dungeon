@@ -13,6 +13,21 @@ function isFusionOutput(itemId: string): boolean {
   return FUSION_RECIPES.some(r => r.output === itemId);
 }
 
+/** Passive weapons: always-on effects (orbit, lightning, etc.) */
+const PASSIVE_WEAPONS = new Set([
+  'fireball_orbit', 'lightning', 'hellfire', 'thunderstorm',
+  'tracking_fireball', 'sun_storm',
+]);
+
+function isPassiveWeapon(itemId: string): boolean {
+  return PASSIVE_WEAPONS.has(itemId);
+}
+
+function isWeaponCategory(itemId: string): boolean {
+  const d = ALL_ITEMS[itemId];
+  return d?.category === 'weapon';
+}
+
 export class ItemSystem {
   player: Player;
 
@@ -36,46 +51,46 @@ export class ItemSystem {
         // ── Weapons ──
         case 'basic_shot':
           mod.damageMul *= value;
-          mod.weaponType = mod.weaponType || 'basic_shot';
+          mod.activeWeapon = 'basic_shot';
           break;
         case 'shotgun':
           mod.shotCount += value - 1;
-          mod.weaponType = 'shotgun';
+          mod.activeWeapon = 'shotgun';
           break;
         case 'fireball_orbit':
           mod.orbCount += value;
-          mod.weaponType = mod.weaponType || 'fireball_orbit';
+          mod.passiveWeapon = 'fireball_orbit';
           break;
         case 'boomerang':
           mod.boomerangCount += value;
-          mod.weaponType = mod.weaponType || 'boomerang';
+          mod.activeWeapon = 'boomerang';
           break;
         case 'lightning':
           mod.chainCount += value;
-          mod.weaponType = mod.weaponType || 'lightning';
+          mod.passiveWeapon = 'lightning';
           break;
         case 'sword_slash':
           mod.swordArcAngle = 90;
           mod.swordRange = 60 + value * 10;
           mod.damageMul *= value;
-          mod.weaponType = 'sword_slash';
+          mod.activeWeapon = 'sword_slash';
           break;
         case 'ice_wave':
           mod.iceSlowAmount = Math.max(mod.iceSlowAmount, 0.3 + value * 0.05);
           mod.damageMul *= value;
-          mod.weaponType = 'ice_wave';
+          mod.activeWeapon = 'ice_wave';
           break;
         case 'poison_snake':
           mod.poisonDpsField += value;
-          mod.weaponType = 'poison_snake';
+          mod.activeWeapon = 'poison_snake';
           break;
         case 'laser_beam':
           mod.laserDps += value;
-          mod.weaponType = 'laser_beam';
+          mod.activeWeapon = 'laser_beam';
           break;
         case 'death_scythe':
           mod.executeThreshold = Math.max(mod.executeThreshold, value);
-          mod.weaponType = 'death_scythe';
+          mod.activeWeapon = 'death_scythe';
           break;
 
         // ── Fusion Weapons ──
@@ -83,66 +98,66 @@ export class ItemSystem {
           mod.shotCount += value - 1;
           mod.slowOnHit = Math.max(mod.slowOnHit, 0.6);
           mod.slowDuration = Math.max(mod.slowDuration, 2.0);
-          mod.weaponType = 'freeze_shotgun';
+          mod.activeWeapon = 'freeze_shotgun';
           break;
         case 'hellfire':
           mod.orbCount += value;
-          mod.weaponType = 'hellfire';
+          mod.passiveWeapon = 'hellfire';
           break;
         case 'death_wheel':
           mod.boomerangCount += value;
           mod.executeThreshold = Math.max(mod.executeThreshold, 0.15);
-          mod.weaponType = 'death_wheel';
+          mod.activeWeapon = 'death_wheel';
           break;
         case 'mega_blaster':
           mod.damageMul *= value;
           mod.pierce += 3;
-          mod.weaponType = 'mega_blaster';
+          mod.activeWeapon = 'mega_blaster';
           break;
         case 'thunder_slash':
           mod.swordArcAngle = 90;
           mod.swordRange = 60 + value * 10;
           mod.damageMul *= value;
-          mod.weaponType = 'thunder_slash';
+          mod.activeWeapon = 'thunder_slash';
           break;
         case 'fragment_bomb':
           mod.shotCount += value - 1;
           mod.splashRadius = Math.max(mod.splashRadius, 40);
-          mod.weaponType = 'fragment_bomb';
+          mod.activeWeapon = 'fragment_bomb';
           break;
         case 'thunderstorm':
           mod.chainCount += value;
-          mod.weaponType = 'thunderstorm';
+          mod.passiveWeapon = 'thunderstorm';
           break;
         case 'tracking_fireball':
           mod.orbCount += value;
-          mod.weaponType = 'tracking_fireball';
+          mod.passiveWeapon = 'tracking_fireball';
           break;
         case 'frost_storm':
           mod.iceSlowAmount = Math.max(mod.iceSlowAmount, 0.3 + value * 0.05);
           mod.chainCount += Math.floor(value * 0.5);
           mod.damageMul *= value;
-          mod.weaponType = 'frost_storm';
+          mod.activeWeapon = 'frost_storm';
           break;
         case 'plague_bomb':
           mod.poisonDpsField += value;
           mod.splashRadius = Math.max(mod.splashRadius, 30);
-          mod.weaponType = 'plague_bomb';
+          mod.activeWeapon = 'plague_bomb';
           break;
         case 'sun_storm':
           mod.orbCount += value;
           mod.bulletSizeMul *= 1.5;
-          mod.weaponType = 'sun_storm';
+          mod.passiveWeapon = 'sun_storm';
           break;
         case 'photon_cannon':
           mod.laserDps += value;
           mod.attackSpeedMul *= 0.7;
-          mod.weaponType = 'photon_cannon';
+          mod.activeWeapon = 'photon_cannon';
           break;
         case 'soul_reaper':
           mod.executeThreshold = Math.max(mod.executeThreshold, value);
           mod.splashRadius = Math.max(mod.splashRadius, 20);
-          mod.weaponType = 'soul_reaper';
+          mod.activeWeapon = 'soul_reaper';
           break;
 
         // ── Augments ──
@@ -259,29 +274,48 @@ export class ItemSystem {
     const def = ALL_ITEMS[itemId];
     if (!def) return { success: false, message: '未知道具', level: 0 };
 
-    // Weapons: only one at a time, replaces current
+    // Weapons: split into active and passive slots
     if (def.category === 'weapon') {
-      const existingWeapon = this.player.skills.find(s => {
-        const d = ALL_ITEMS[s.id];
-        return d?.category === 'weapon';
+      const newIsPassive = isPassiveWeapon(itemId);
+      // Find existing weapon in the same slot (active or passive)
+      const existingInSlot = this.player.skills.find(s => {
+        if (!isWeaponCategory(s.id)) return false;
+        return newIsPassive ? isPassiveWeapon(s.id) : !isPassiveWeapon(s.id);
       });
 
-      if (existingWeapon && existingWeapon.id !== itemId) {
-        // Replace existing weapon
-        const idx = this.player.skills.indexOf(existingWeapon);
-        this.player.skills[idx] = { id: itemId, level: 1 };
-        this.recalculate();
-        return { success: true, message: `武器更换: ${def.name}`, level: 1 };
-      }
-      // Same weapon -> upgrade
-      if (existingWeapon && existingWeapon.id === itemId) {
-        if (existingWeapon.level < 9) {
-          existingWeapon.level++;
+      // Same weapon → upgrade
+      const existingSame = this.player.skills.find(s => s.id === itemId);
+      if (existingSame) {
+        if (existingSame.level < 9) {
+          existingSame.level++;
           this.recalculate();
-          return { success: true, message: `${def.name} 升级到 Lv.${existingWeapon.level}`, level: existingWeapon.level };
+          return { success: true, message: `${def.name} 升级到 Lv.${existingSame.level}`, level: existingSame.level };
         }
         return { success: false, message: `${def.name} 已满级`, level: 9 };
       }
+
+      // Different weapon in same slot → replace (with fusion protection)
+      if (existingInSlot) {
+        const existingIsFusion = isFusionOutput(existingInSlot.id);
+        const newIsFusion = isFusionOutput(itemId);
+        if (existingIsFusion && !newIsFusion) {
+          return { success: false, message: `${ALL_ITEMS[existingInSlot.id]?.name ?? '融合武器'} 不会被替换`, level: existingInSlot.level };
+        }
+        const idx = this.player.skills.indexOf(existingInSlot);
+        this.player.skills[idx] = { id: itemId, level: 1 };
+        this.recalculate();
+        return { success: true, message: `${newIsPassive ? '被动' : '主动'}武器更换: ${def.name}`, level: 1 };
+      }
+
+      // No existing weapon in slot → add new
+      const maxSlots = MAX_SKILL_SLOTS + this.player.modifiers.fusionSlotBonus;
+      if (this.player.skills.length < maxSlots) {
+        this.player.skills.push({ id: itemId, level: 1 });
+        this.recalculate();
+        return { success: true, message: `获得${newIsPassive ? '被动' : '主动'}武器: ${def.name} Lv.1`, level: 1 };
+      }
+
+      return { success: false, message: '道具栏已满', level: 0 };
     }
 
     // Non-weapon items

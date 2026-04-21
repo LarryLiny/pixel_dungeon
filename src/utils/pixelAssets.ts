@@ -233,14 +233,111 @@ export function createDemonTexture(scene: Phaser.Scene) {
 
 // --- Bullet ---
 export function createBulletTexture(scene: Phaser.Scene) {
+  // Default / basic_shot: yellow bullet
   generateTexture(scene, 'bullet', 6, 6, (ctx) => {
     ctx.fillStyle = '#ffee55';
     ctx.fillRect(1, 0, 4, 1);
     ctx.fillRect(0, 1, 6, 4);
     ctx.fillRect(1, 5, 4, 1);
-    // Glow
     ctx.fillStyle = '#fff';
     ctx.fillRect(2, 2, 2, 2);
+  });
+
+  // Shotgun pellet: orange, small round
+  generateTexture(scene, 'bullet_shotgun', 5, 5, (ctx) => {
+    ctx.fillStyle = '#ff8833';
+    ctx.fillRect(1, 0, 3, 1);
+    ctx.fillRect(0, 1, 5, 3);
+    ctx.fillRect(1, 4, 3, 1);
+    ctx.fillStyle = '#ffcc66';
+    ctx.fillRect(1, 1, 3, 3);
+  });
+
+  // Boomerang: green V-shape
+  generateTexture(scene, 'bullet_boomerang', 6, 6, (ctx) => {
+    ctx.fillStyle = '#44dd44';
+    ctx.fillRect(0, 0, 2, 3);
+    ctx.fillRect(4, 0, 2, 3);
+    ctx.fillRect(1, 3, 4, 2);
+    ctx.fillStyle = '#88ff88';
+    ctx.fillRect(1, 1, 1, 2);
+    ctx.fillRect(4, 1, 1, 2);
+  });
+
+  // Death scythe: purple blade
+  generateTexture(scene, 'bullet_scythe', 6, 6, (ctx) => {
+    ctx.fillStyle = '#8833aa';
+    ctx.fillRect(0, 0, 3, 2);
+    ctx.fillRect(0, 0, 2, 3);
+    ctx.fillRect(2, 2, 4, 2);
+    ctx.fillRect(4, 3, 2, 3);
+    ctx.fillStyle = '#cc66ff';
+    ctx.fillRect(1, 1, 1, 1);
+    ctx.fillRect(3, 2, 1, 1);
+  });
+
+  // Poison snake: green fang/dart
+  generateTexture(scene, 'bullet_poison', 5, 5, (ctx) => {
+    ctx.fillStyle = '#33aa22';
+    ctx.fillRect(2, 0, 1, 2);
+    ctx.fillRect(0, 2, 5, 2);
+    ctx.fillRect(2, 4, 1, 1);
+    ctx.fillStyle = '#66ff33';
+    ctx.fillRect(1, 2, 3, 1);
+    // Venom drop
+    ctx.fillStyle = '#aaff44';
+    ctx.fillRect(2, 1, 1, 1);
+  });
+
+  // Mega blaster: large gold bullet
+  generateTexture(scene, 'bullet_mega', 8, 8, (ctx) => {
+    ctx.fillStyle = '#cc8800';
+    ctx.fillRect(2, 0, 4, 1);
+    ctx.fillRect(0, 1, 8, 6);
+    ctx.fillRect(2, 7, 4, 1);
+    ctx.fillStyle = '#ffcc33';
+    ctx.fillRect(2, 1, 4, 6);
+    ctx.fillRect(1, 2, 6, 4);
+    ctx.fillStyle = '#fff8aa';
+    ctx.fillRect(3, 3, 2, 2);
+  });
+
+  // Freeze shotgun: blue-white shard
+  generateTexture(scene, 'bullet_freeze', 5, 5, (ctx) => {
+    ctx.fillStyle = '#88ccff';
+    ctx.fillRect(1, 0, 3, 1);
+    ctx.fillRect(0, 1, 5, 3);
+    ctx.fillRect(1, 4, 3, 1);
+    ctx.fillStyle = '#cceeFF';
+    ctx.fillRect(2, 1, 1, 3);
+    ctx.fillRect(1, 2, 3, 1);
+  });
+
+  // Fragment bomb: dark orange with spark
+  generateTexture(scene, 'bullet_fragment', 6, 6, (ctx) => {
+    ctx.fillStyle = '#aa4400';
+    ctx.fillRect(1, 0, 4, 1);
+    ctx.fillRect(0, 1, 6, 4);
+    ctx.fillRect(1, 5, 4, 1);
+    ctx.fillStyle = '#ff6622';
+    ctx.fillRect(2, 1, 2, 4);
+    ctx.fillRect(1, 2, 4, 2);
+    ctx.fillStyle = '#ffaa44';
+    ctx.fillRect(2, 2, 2, 2);
+  });
+
+  // Soul reaper: dark purple with soul glow
+  generateTexture(scene, 'bullet_soul', 6, 6, (ctx) => {
+    ctx.fillStyle = '#550066';
+    ctx.fillRect(0, 0, 3, 2);
+    ctx.fillRect(0, 0, 2, 3);
+    ctx.fillRect(2, 2, 4, 2);
+    ctx.fillRect(4, 3, 2, 3);
+    ctx.fillStyle = '#9933cc';
+    ctx.fillRect(1, 1, 1, 1);
+    ctx.fillRect(3, 3, 1, 1);
+    ctx.fillStyle = '#cc88ff';
+    ctx.fillRect(2, 2, 1, 1);
   });
 }
 
@@ -279,20 +376,27 @@ export function createSkillOrbTexture(scene: Phaser.Scene) {
 
 // --- Fireball orb (orbiting weapon) ---
 export function createFireballOrbTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fireball_orb', 12, 12, (ctx) => {
+  generateTexture(scene, 'fireball_orb', 16, 16, (ctx) => {
+    // Outer fire
     ctx.fillStyle = '#ff4422';
-    ctx.fillRect(2, 0, 8, 2);
-    ctx.fillRect(0, 2, 12, 8);
-    ctx.fillRect(2, 10, 8, 2);
-    // Core
+    ctx.fillRect(3, 0, 10, 2);
+    ctx.fillRect(1, 2, 14, 10);
+    ctx.fillRect(3, 12, 10, 2);
+    // Mid flame
     ctx.fillStyle = '#ff8844';
-    ctx.fillRect(3, 3, 6, 6);
-    // Bright center
+    ctx.fillRect(4, 3, 8, 8);
+    // Hot core
     ctx.fillStyle = '#ffcc44';
-    ctx.fillRect(4, 4, 4, 4);
-    // White hot
+    ctx.fillRect(5, 4, 6, 6);
+    // White center
     ctx.fillStyle = '#fff';
-    ctx.fillRect(5, 5, 2, 2);
+    ctx.fillRect(6, 5, 4, 4);
+    // Flame tips
+    ctx.fillStyle = '#ff6622';
+    ctx.fillRect(5, 0, 2, 2);
+    ctx.fillRect(9, 0, 2, 2);
+    ctx.fillRect(5, 14, 2, 2);
+    ctx.fillRect(9, 14, 2, 2);
   });
 }
 
@@ -1788,6 +1892,1079 @@ export function createItemIcons(scene: Phaser.Scene) {
     ctx.fillRect(7, 15, 2, 1);
     ctx.fillRect(0, 7, 1, 2);
     ctx.fillRect(15, 7, 1, 2);
+  });
+
+  // ===================================================================
+  // FUSION WEAPON ICONS (upgraded combos of two parent items)
+  // ===================================================================
+
+  // 11. icon_freeze_shotgun = shotgun + ice
+  // Shotgun pellet spread with ICE SHARD pellets + frost crystals
+  generateTexture(scene, 'icon_freeze_shotgun', 16, 16, (ctx) => {
+    // Frost aura background (dark cyan outline)
+    ctx.fillStyle = '#1a5566';
+    ctx.fillRect(2, 2, 12, 12);
+    // Ice shard pellets - spread pattern (cyan-blue base)
+    // Left shard
+    ctx.fillStyle = '#44aadd';
+    ctx.fillRect(1, 1, 3, 2);
+    ctx.fillRect(2, 3, 2, 2);
+    // Center shard
+    ctx.fillStyle = '#55ccee';
+    ctx.fillRect(7, 0, 2, 2);
+    ctx.fillRect(6, 2, 4, 2);
+    // Right shard
+    ctx.fillStyle = '#44aadd';
+    ctx.fillRect(12, 1, 3, 2);
+    ctx.fillRect(12, 3, 2, 2);
+    // Shard bright highlights (white)
+    ctx.fillStyle = '#ccf0ff';
+    ctx.fillRect(1, 1, 2, 1);
+    ctx.fillRect(7, 0, 2, 1);
+    ctx.fillRect(13, 1, 2, 1);
+    // Barrel base (steel blue)
+    ctx.fillStyle = '#336688';
+    ctx.fillRect(6, 9, 4, 5);
+    ctx.fillRect(5, 10, 6, 3);
+    // Barrel highlight
+    ctx.fillStyle = '#5599bb';
+    ctx.fillRect(7, 10, 2, 3);
+    // Muzzle frost spray (pale cyan)
+    ctx.fillStyle = '#88ddff';
+    ctx.fillRect(5, 7, 6, 2);
+    ctx.fillRect(4, 8, 8, 1);
+    // Frost crystals around spread (white-blue)
+    ctx.fillStyle = '#aaeeff';
+    ctx.fillRect(0, 5, 2, 1);
+    ctx.fillRect(14, 5, 2, 1);
+    ctx.fillRect(3, 6, 1, 2);
+    ctx.fillRect(12, 6, 1, 2);
+    // Crystal sparkle tips (bright white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 1, 1, 1);
+    ctx.fillRect(14, 1, 1, 1);
+    ctx.fillRect(7, 7, 2, 1);
+  });
+
+  // 12. icon_hellfire = fireball_orbit + power
+  // SINGLE large fireball with intense red core, dark red glow, flame wisps
+  generateTexture(scene, 'icon_hellfire', 16, 16, (ctx) => {
+    // Outer dark red glow
+    ctx.fillStyle = '#881111';
+    ctx.fillRect(2, 2, 12, 12);
+    ctx.fillRect(1, 4, 14, 8);
+    ctx.fillRect(4, 1, 8, 14);
+    // Main fireball body (deep red)
+    ctx.fillStyle = '#cc2211';
+    ctx.fillRect(3, 3, 10, 10);
+    ctx.fillRect(2, 5, 12, 6);
+    ctx.fillRect(5, 2, 6, 12);
+    // Inner fireball (red-orange)
+    ctx.fillStyle = '#ee4422';
+    ctx.fillRect(4, 4, 8, 8);
+    ctx.fillRect(3, 6, 10, 4);
+    // Intense core (orange)
+    ctx.fillStyle = '#ff8833';
+    ctx.fillRect(5, 5, 6, 6);
+    ctx.fillRect(4, 7, 8, 2);
+    // Hot center (bright orange-yellow)
+    ctx.fillStyle = '#ffbb44';
+    ctx.fillRect(6, 6, 4, 4);
+    // White-hot core
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 2, 2);
+    // Flame wisps radiating outward (orange)
+    ctx.fillStyle = '#ff6622';
+    ctx.fillRect(0, 3, 2, 2);
+    ctx.fillRect(14, 3, 2, 2);
+    ctx.fillRect(0, 11, 2, 2);
+    ctx.fillRect(14, 11, 2, 2);
+    ctx.fillRect(3, 0, 2, 2);
+    ctx.fillRect(11, 0, 2, 2);
+    ctx.fillRect(3, 14, 2, 2);
+    ctx.fillRect(11, 14, 2, 2);
+    // Wisp highlights (bright)
+    ctx.fillStyle = '#ffaa44';
+    ctx.fillRect(0, 3, 1, 1);
+    ctx.fillRect(14, 3, 1, 1);
+    ctx.fillRect(3, 0, 1, 1);
+    ctx.fillRect(11, 0, 1, 1);
+  });
+
+  // 13. icon_death_wheel = boomerang + execute
+  // Spinning circular blade/chakram, dark green with red edge glow + rotation lines
+  generateTexture(scene, 'icon_death_wheel', 16, 16, (ctx) => {
+    // Rotation motion lines (dark green, behind blade)
+    ctx.fillStyle = '#226633';
+    ctx.fillRect(0, 7, 3, 2);
+    ctx.fillRect(13, 7, 3, 2);
+    ctx.fillRect(7, 0, 2, 3);
+    ctx.fillRect(7, 13, 2, 3);
+    // Diagonal motion lines
+    ctx.fillRect(1, 1, 2, 1);
+    ctx.fillRect(13, 1, 2, 1);
+    ctx.fillRect(1, 14, 2, 1);
+    ctx.fillRect(13, 14, 2, 1);
+    // Chakram outer ring (dark green)
+    ctx.fillStyle = '#227744';
+    ctx.fillRect(3, 1, 10, 2);
+    ctx.fillRect(1, 3, 2, 2);
+    ctx.fillRect(13, 3, 2, 2);
+    ctx.fillRect(0, 5, 2, 6);
+    ctx.fillRect(14, 5, 2, 6);
+    ctx.fillRect(1, 11, 2, 2);
+    ctx.fillRect(13, 11, 2, 2);
+    ctx.fillRect(3, 13, 10, 2);
+    // Inner ring hollow (black/empty - no fill needed, canvas is transparent)
+    // Blade teeth/serrations (green)
+    ctx.fillStyle = '#33aa55';
+    ctx.fillRect(4, 2, 2, 1);
+    ctx.fillRect(7, 1, 2, 1);
+    ctx.fillRect(10, 2, 2, 1);
+    ctx.fillRect(2, 4, 1, 2);
+    ctx.fillRect(2, 10, 1, 2);
+    ctx.fillRect(4, 13, 2, 1);
+    ctx.fillRect(7, 14, 2, 1);
+    ctx.fillRect(10, 13, 2, 1);
+    ctx.fillRect(13, 4, 1, 2);
+    ctx.fillRect(13, 10, 1, 2);
+    // Inner ring edge (light green highlight)
+    ctx.fillStyle = '#55cc66';
+    ctx.fillRect(5, 3, 6, 1);
+    ctx.fillRect(3, 5, 1, 6);
+    ctx.fillRect(12, 5, 1, 6);
+    ctx.fillRect(5, 12, 6, 1);
+    // Red execute edge glow on teeth
+    ctx.fillStyle = '#cc2233';
+    ctx.fillRect(4, 1, 2, 1);
+    ctx.fillRect(7, 0, 2, 1);
+    ctx.fillRect(10, 1, 2, 1);
+    ctx.fillRect(0, 4, 1, 2);
+    ctx.fillRect(0, 10, 1, 2);
+    ctx.fillRect(4, 14, 2, 1);
+    ctx.fillRect(7, 15, 2, 1);
+    ctx.fillRect(10, 14, 2, 1);
+    ctx.fillRect(15, 4, 1, 2);
+    ctx.fillRect(15, 10, 1, 2);
+    // Red glow highlights
+    ctx.fillStyle = '#ff4455';
+    ctx.fillRect(5, 1, 1, 1);
+    ctx.fillRect(7, 0, 1, 1);
+    ctx.fillRect(11, 1, 1, 1);
+    // Center hub (dark green)
+    ctx.fillStyle = '#1a5533';
+    ctx.fillRect(6, 6, 4, 4);
+    // Center hub highlight
+    ctx.fillStyle = '#33bb55';
+    ctx.fillRect(7, 7, 2, 2);
+    // Red center accent
+    ctx.fillStyle = '#ee3344';
+    ctx.fillRect(7, 7, 1, 1);
+  });
+
+  // 14. icon_mega_blaster = basic_shot + pierce
+  // LARGE bullet (2x size) with long trail, pierce-through arrow, gold/yellow
+  generateTexture(scene, 'icon_mega_blaster', 16, 16, (ctx) => {
+    // Trail (dark gold outline)
+    ctx.fillStyle = '#886611';
+    ctx.fillRect(0, 7, 5, 2);
+    // Trail body (gold)
+    ctx.fillStyle = '#bbaa22';
+    ctx.fillRect(0, 7, 4, 2);
+    // Trail fade
+    ctx.fillStyle = '#ddcc44';
+    ctx.fillRect(1, 7, 3, 2);
+    // Large bullet body (dark gold outline)
+    ctx.fillStyle = '#aa8811';
+    ctx.fillRect(4, 3, 10, 10);
+    ctx.fillRect(3, 5, 12, 6);
+    // Bullet fill (gold)
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(5, 4, 8, 8);
+    ctx.fillRect(4, 6, 10, 4);
+    // Bullet inner (bright gold)
+    ctx.fillStyle = '#ffee88';
+    ctx.fillRect(6, 5, 6, 6);
+    ctx.fillRect(5, 7, 8, 2);
+    // White core
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 4, 2);
+    // Pierce-through arrow (going through bullet)
+    ctx.fillStyle = '#cc9900';
+    ctx.fillRect(12, 7, 4, 2);
+    ctx.fillRect(14, 6, 2, 1);
+    ctx.fillRect(14, 9, 2, 1);
+    // Arrow highlight
+    ctx.fillStyle = '#ffcc33';
+    ctx.fillRect(13, 7, 2, 2);
+    // Arrow tip (bright)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(15, 7, 1, 2);
+    // Pierce impact lines (white)
+    ctx.fillStyle = '#ffffcc';
+    ctx.fillRect(4, 4, 1, 1);
+    ctx.fillRect(13, 4, 1, 1);
+    ctx.fillRect(4, 11, 1, 1);
+    ctx.fillRect(13, 11, 1, 1);
+  });
+
+  // 15. icon_thunder_slash = sword_slash + lightning
+  // Sword with lightning bolt running along blade, electric sparks
+  generateTexture(scene, 'icon_thunder_slash', 16, 16, (ctx) => {
+    // Sword blade (blue-white steel)
+    ctx.fillStyle = '#8899cc';
+    ctx.fillRect(12, 0, 2, 3);
+    ctx.fillRect(10, 2, 3, 2);
+    ctx.fillRect(8, 4, 3, 2);
+    ctx.fillRect(6, 6, 3, 2);
+    ctx.fillRect(4, 8, 3, 2);
+    ctx.fillRect(2, 10, 3, 2);
+    ctx.fillRect(0, 12, 3, 2);
+    // Blade edge highlight (white)
+    ctx.fillStyle = '#ccddff';
+    ctx.fillRect(13, 0, 1, 3);
+    ctx.fillRect(12, 2, 1, 2);
+    ctx.fillRect(10, 4, 1, 2);
+    ctx.fillRect(8, 6, 1, 2);
+    ctx.fillRect(6, 8, 1, 2);
+    ctx.fillRect(4, 10, 1, 2);
+    ctx.fillRect(2, 12, 1, 2);
+    // Lightning bolt RUNNING ALONG the blade (bright cyan)
+    ctx.fillStyle = '#44ccff';
+    ctx.fillRect(11, 1, 2, 1);
+    ctx.fillRect(9, 3, 2, 1);
+    ctx.fillRect(7, 5, 2, 1);
+    ctx.fillRect(5, 7, 2, 1);
+    ctx.fillRect(3, 9, 2, 1);
+    ctx.fillRect(1, 11, 2, 1);
+    // Lightning core (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(12, 1, 1, 1);
+    ctx.fillRect(10, 3, 1, 1);
+    ctx.fillRect(8, 5, 1, 1);
+    ctx.fillRect(6, 7, 1, 1);
+    ctx.fillRect(4, 9, 1, 1);
+    ctx.fillRect(2, 11, 1, 1);
+    // Electric sparks branching off (cyan)
+    ctx.fillStyle = '#66ddff';
+    ctx.fillRect(13, 2, 2, 1);
+    ctx.fillRect(0, 3, 2, 1);
+    ctx.fillRect(14, 5, 2, 1);
+    ctx.fillRect(0, 6, 2, 1);
+    ctx.fillRect(12, 7, 2, 1);
+    ctx.fillRect(1, 9, 2, 1);
+    ctx.fillRect(14, 10, 2, 1);
+    ctx.fillRect(0, 12, 1, 1);
+    // Spark tips (white)
+    ctx.fillStyle = '#aaeeff';
+    ctx.fillRect(14, 2, 1, 1);
+    ctx.fillRect(15, 5, 1, 1);
+    ctx.fillRect(0, 6, 1, 1);
+    ctx.fillRect(13, 7, 1, 1);
+    // Cross-guard (electric blue)
+    ctx.fillStyle = '#2266cc';
+    ctx.fillRect(0, 12, 5, 2);
+    ctx.fillRect(4, 11, 3, 1);
+    // Handle (dark blue)
+    ctx.fillStyle = '#223366';
+    ctx.fillRect(0, 14, 3, 2);
+    ctx.fillRect(1, 13, 2, 1);
+    // Pommel (bright blue)
+    ctx.fillStyle = '#4488ff';
+    ctx.fillRect(0, 14, 2, 2);
+  });
+
+  // 16. icon_fragment_bomb = shotgun + splash
+  // Explosion blast with embedded pellets flying outward, bright center
+  generateTexture(scene, 'icon_fragment_bomb', 16, 16, (ctx) => {
+    // Outer shockwave ring (dark orange outline)
+    ctx.fillStyle = '#993300';
+    ctx.fillRect(3, 0, 10, 2);
+    ctx.fillRect(1, 2, 2, 2);
+    ctx.fillRect(13, 2, 2, 2);
+    ctx.fillRect(0, 4, 2, 8);
+    ctx.fillRect(14, 4, 2, 8);
+    ctx.fillRect(1, 12, 2, 2);
+    ctx.fillRect(13, 12, 2, 2);
+    ctx.fillRect(3, 14, 10, 2);
+    // Inner explosion fill (orange)
+    ctx.fillStyle = '#ee6622';
+    ctx.fillRect(5, 2, 6, 2);
+    ctx.fillRect(3, 4, 10, 2);
+    ctx.fillRect(2, 6, 12, 4);
+    ctx.fillRect(3, 10, 10, 2);
+    ctx.fillRect(5, 12, 6, 2);
+    // Explosion core (bright yellow)
+    ctx.fillStyle = '#ffcc44';
+    ctx.fillRect(5, 5, 6, 6);
+    ctx.fillRect(4, 6, 8, 4);
+    // Hot white center
+    ctx.fillStyle = '#ffeeaa';
+    ctx.fillRect(6, 6, 4, 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 2, 2);
+    // Embedded pellets flying outward (dark orange dots)
+    ctx.fillStyle = '#884411';
+    ctx.fillRect(1, 1, 2, 2);
+    ctx.fillRect(13, 1, 2, 2);
+    ctx.fillRect(1, 13, 2, 2);
+    ctx.fillRect(13, 13, 2, 2);
+    ctx.fillRect(5, 0, 2, 1);
+    ctx.fillRect(9, 0, 2, 1);
+    ctx.fillRect(5, 15, 2, 1);
+    ctx.fillRect(9, 15, 2, 1);
+    ctx.fillRect(0, 5, 1, 2);
+    ctx.fillRect(15, 5, 1, 2);
+    ctx.fillRect(0, 9, 1, 2);
+    ctx.fillRect(15, 9, 1, 2);
+    // Pellet highlights (bright orange)
+    ctx.fillStyle = '#ff8833';
+    ctx.fillRect(1, 1, 1, 1);
+    ctx.fillRect(14, 1, 1, 1);
+    ctx.fillRect(1, 13, 1, 1);
+    ctx.fillRect(14, 13, 1, 1);
+    // Directional force lines (bright orange)
+    ctx.fillStyle = '#ffaa44';
+    ctx.fillRect(7, 0, 2, 1);
+    ctx.fillRect(7, 15, 2, 1);
+    ctx.fillRect(0, 7, 1, 2);
+    ctx.fillRect(15, 7, 1, 2);
+  });
+
+  // 17. icon_thunderstorm = lightning + chain
+  // MULTIPLE lightning bolts converging on center point, dramatic
+  generateTexture(scene, 'icon_thunderstorm', 16, 16, (ctx) => {
+    // Center convergence glow (electric blue)
+    ctx.fillStyle = '#2255cc';
+    ctx.fillRect(5, 5, 6, 6);
+    ctx.fillRect(4, 7, 8, 2);
+    // Lightning bolt 1: top-left to center
+    ctx.fillStyle = '#4488ff';
+    ctx.fillRect(1, 0, 2, 2);
+    ctx.fillRect(2, 2, 2, 2);
+    ctx.fillRect(3, 4, 2, 2);
+    // Lightning bolt 2: top-right to center
+    ctx.fillRect(13, 0, 2, 2);
+    ctx.fillRect(12, 2, 2, 2);
+    ctx.fillRect(11, 4, 2, 2);
+    // Lightning bolt 3: bottom-left to center
+    ctx.fillRect(1, 14, 2, 2);
+    ctx.fillRect(2, 12, 2, 2);
+    ctx.fillRect(3, 10, 2, 2);
+    // Lightning bolt 4: bottom-right to center
+    ctx.fillRect(13, 14, 2, 2);
+    ctx.fillRect(12, 12, 2, 2);
+    ctx.fillRect(11, 10, 2, 2);
+    // Bolt white cores
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(2, 0, 1, 2);
+    ctx.fillRect(3, 2, 1, 2);
+    ctx.fillRect(4, 4, 1, 2);
+    ctx.fillRect(14, 0, 1, 2);
+    ctx.fillRect(13, 2, 1, 2);
+    ctx.fillRect(12, 4, 1, 2);
+    ctx.fillRect(2, 14, 1, 2);
+    ctx.fillRect(3, 12, 1, 2);
+    ctx.fillRect(4, 10, 1, 2);
+    ctx.fillRect(14, 14, 1, 2);
+    ctx.fillRect(13, 12, 1, 2);
+    ctx.fillRect(12, 10, 1, 2);
+    // Bright center point (white)
+    ctx.fillStyle = '#aaddff';
+    ctx.fillRect(6, 6, 4, 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 2, 2);
+    // Side branch sparks (light blue)
+    ctx.fillStyle = '#66aaff';
+    ctx.fillRect(0, 2, 1, 1);
+    ctx.fillRect(15, 2, 1, 1);
+    ctx.fillRect(0, 13, 1, 1);
+    ctx.fillRect(15, 13, 1, 1);
+    ctx.fillRect(5, 1, 2, 1);
+    ctx.fillRect(9, 1, 2, 1);
+    ctx.fillRect(5, 14, 2, 1);
+    ctx.fillRect(9, 14, 2, 1);
+    // Bright electric tips
+    ctx.fillStyle = '#ccddff';
+    ctx.fillRect(1, 0, 1, 1);
+    ctx.fillRect(14, 0, 1, 1);
+    ctx.fillRect(1, 15, 1, 1);
+    ctx.fillRect(14, 15, 1, 1);
+  });
+
+  // 18. icon_tracking_fireball = fireball_orbit + speed
+  // Fireball with CURVED homing trail showing direction change
+  generateTexture(scene, 'icon_tracking_fireball', 16, 16, (ctx) => {
+    // Curved homing trail - dark outline
+    ctx.fillStyle = '#882211';
+    ctx.fillRect(0, 10, 2, 2);
+    ctx.fillRect(1, 8, 2, 2);
+    ctx.fillRect(2, 6, 2, 2);
+    ctx.fillRect(4, 4, 2, 2);
+    ctx.fillRect(6, 3, 3, 2);
+    // Curved trail body (red-orange)
+    ctx.fillStyle = '#cc4422';
+    ctx.fillRect(1, 10, 1, 1);
+    ctx.fillRect(2, 8, 1, 1);
+    ctx.fillRect(3, 6, 1, 1);
+    ctx.fillRect(5, 4, 1, 1);
+    ctx.fillRect(7, 3, 2, 1);
+    // Trail fade (orange)
+    ctx.fillStyle = '#ee6633';
+    ctx.fillRect(1, 9, 1, 1);
+    ctx.fillRect(2, 7, 1, 1);
+    ctx.fillRect(3, 5, 1, 1);
+    ctx.fillRect(5, 4, 1, 1);
+    // Fireball body (red-orange outline)
+    ctx.fillStyle = '#cc2211';
+    ctx.fillRect(8, 0, 8, 8);
+    ctx.fillRect(7, 1, 2, 6);
+    // Fireball fill (orange)
+    ctx.fillStyle = '#ee4422';
+    ctx.fillRect(9, 1, 6, 6);
+    ctx.fillRect(8, 2, 8, 4);
+    // Fireball inner (bright orange)
+    ctx.fillStyle = '#ff7733';
+    ctx.fillRect(10, 2, 4, 4);
+    ctx.fillRect(9, 3, 6, 2);
+    // Hot core (yellow)
+    ctx.fillStyle = '#ffbb44';
+    ctx.fillRect(11, 3, 2, 2);
+    // White-hot center
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(11, 3, 1, 1);
+    // Direction change indicator (bright trail tip)
+    ctx.fillStyle = '#ffcc44';
+    ctx.fillRect(0, 11, 1, 1);
+    // Speed lines (pale orange)
+    ctx.fillStyle = '#ff8844';
+    ctx.fillRect(3, 12, 3, 1);
+    ctx.fillRect(1, 13, 2, 1);
+    // Trail heat glow
+    ctx.fillStyle = '#ff9944';
+    ctx.fillRect(6, 5, 2, 1);
+  });
+
+  // 19. icon_frost_storm = ice_wave + chain
+  // Ice crystal with LIGHTNING BRANCHES from each point, hybrid
+  generateTexture(scene, 'icon_frost_storm', 16, 16, (ctx) => {
+    // Ice crystal body (pale blue)
+    ctx.fillStyle = '#77bbee';
+    ctx.fillRect(6, 3, 4, 10);
+    ctx.fillRect(3, 6, 10, 4);
+    // Crystal outer points (white-blue)
+    ctx.fillStyle = '#aaddff';
+    ctx.fillRect(7, 0, 2, 4);
+    ctx.fillRect(7, 12, 2, 4);
+    ctx.fillRect(0, 7, 4, 2);
+    ctx.fillRect(12, 7, 4, 2);
+    // Crystal inner bright (white)
+    ctx.fillStyle = '#ddeeff';
+    ctx.fillRect(6, 4, 4, 8);
+    ctx.fillRect(4, 6, 8, 4);
+    // Center crystal (bright white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 6, 2, 4);
+    ctx.fillRect(6, 7, 4, 2);
+    // Lightning branches from crystal points (cyan)
+    ctx.fillStyle = '#33ccff';
+    // From top point
+    ctx.fillRect(5, 1, 1, 1);
+    ctx.fillRect(4, 0, 1, 1);
+    ctx.fillRect(10, 1, 1, 1);
+    ctx.fillRect(11, 0, 1, 1);
+    // From bottom point
+    ctx.fillRect(5, 14, 1, 1);
+    ctx.fillRect(4, 15, 1, 1);
+    ctx.fillRect(10, 14, 1, 1);
+    ctx.fillRect(11, 15, 1, 1);
+    // From left point
+    ctx.fillRect(1, 5, 1, 1);
+    ctx.fillRect(0, 4, 1, 1);
+    ctx.fillRect(1, 10, 1, 1);
+    ctx.fillRect(0, 11, 1, 1);
+    // From right point
+    ctx.fillRect(14, 5, 1, 1);
+    ctx.fillRect(15, 4, 1, 1);
+    ctx.fillRect(14, 10, 1, 1);
+    ctx.fillRect(15, 11, 1, 1);
+    // Lightning branch highlights (white-cyan)
+    ctx.fillStyle = '#aaeeff';
+    ctx.fillRect(4, 0, 1, 1);
+    ctx.fillRect(11, 0, 1, 1);
+    ctx.fillRect(0, 4, 1, 1);
+    ctx.fillRect(15, 4, 1, 1);
+    ctx.fillRect(0, 11, 1, 1);
+    ctx.fillRect(15, 11, 1, 1);
+    ctx.fillRect(4, 15, 1, 1);
+    ctx.fillRect(11, 15, 1, 1);
+    // Crystal edge dark lines (blue)
+    ctx.fillStyle = '#4499cc';
+    ctx.fillRect(7, 3, 2, 1);
+    ctx.fillRect(7, 12, 2, 1);
+    ctx.fillRect(3, 7, 1, 2);
+    ctx.fillRect(12, 7, 1, 2);
+  });
+
+  // 20. icon_plague_bomb = poison_snake + splash
+  // Toxic explosion (green splatter) with venom drops + skull hint
+  generateTexture(scene, 'icon_plague_bomb', 16, 16, (ctx) => {
+    // Outer splatter ring (dark green outline)
+    ctx.fillStyle = '#225522';
+    ctx.fillRect(3, 1, 10, 2);
+    ctx.fillRect(1, 3, 2, 2);
+    ctx.fillRect(13, 3, 2, 2);
+    ctx.fillRect(0, 5, 2, 6);
+    ctx.fillRect(14, 5, 2, 6);
+    ctx.fillRect(1, 11, 2, 2);
+    ctx.fillRect(13, 11, 2, 2);
+    ctx.fillRect(3, 13, 10, 2);
+    // Inner splatter fill (toxic green)
+    ctx.fillStyle = '#44aa33';
+    ctx.fillRect(5, 3, 6, 2);
+    ctx.fillRect(3, 5, 10, 2);
+    ctx.fillRect(2, 7, 12, 2);
+    ctx.fillRect(3, 9, 10, 2);
+    ctx.fillRect(5, 11, 6, 2);
+    // Bright toxic center (yellow-green)
+    ctx.fillStyle = '#88dd44';
+    ctx.fillRect(5, 5, 6, 6);
+    ctx.fillRect(4, 7, 8, 2);
+    // Hot center (bright green)
+    ctx.fillStyle = '#bbee66';
+    ctx.fillRect(6, 6, 4, 4);
+    // Skull hint in center (dark)
+    ctx.fillStyle = '#113311';
+    // Skull head
+    ctx.fillRect(6, 5, 4, 4);
+    // Eye sockets
+    ctx.fillStyle = '#44ff44';
+    ctx.fillRect(6, 6, 2, 2);
+    ctx.fillRect(8, 6, 2, 2);
+    // Skull mouth
+    ctx.fillStyle = '#113311';
+    ctx.fillRect(7, 8, 2, 1);
+    // Crossbones hint (dark)
+    ctx.fillRect(5, 9, 6, 1);
+    ctx.fillRect(6, 10, 4, 1);
+    // Venom drops radiating outward (bright green)
+    ctx.fillStyle = '#66ff44';
+    ctx.fillRect(0, 2, 2, 2);
+    ctx.fillRect(14, 2, 2, 2);
+    ctx.fillRect(0, 12, 2, 2);
+    ctx.fillRect(14, 12, 2, 2);
+    ctx.fillRect(3, 0, 2, 2);
+    ctx.fillRect(11, 0, 2, 2);
+    ctx.fillRect(3, 14, 2, 2);
+    ctx.fillRect(11, 14, 2, 2);
+    // Venom drop bright tips (yellow)
+    ctx.fillStyle = '#ccff44';
+    ctx.fillRect(0, 2, 1, 1);
+    ctx.fillRect(14, 2, 1, 1);
+    ctx.fillRect(3, 0, 1, 1);
+    ctx.fillRect(11, 0, 1, 1);
+    // Splatter drips (toxic green)
+    ctx.fillStyle = '#55bb33';
+    ctx.fillRect(1, 6, 1, 2);
+    ctx.fillRect(14, 8, 1, 2);
+    ctx.fillRect(7, 14, 2, 1);
+  });
+
+  // 21. icon_sun_storm = fireball_orbit + bullet_size
+  // MASSIVE sun-like fireball with solar flare rays
+  generateTexture(scene, 'icon_sun_storm', 16, 16, (ctx) => {
+    // Outermost solar corona (dark orange)
+    ctx.fillStyle = '#aa4400';
+    ctx.fillRect(5, 0, 6, 2);
+    ctx.fillRect(0, 5, 2, 6);
+    ctx.fillRect(14, 5, 2, 6);
+    ctx.fillRect(5, 14, 6, 2);
+    ctx.fillRect(2, 2, 3, 2);
+    ctx.fillRect(11, 2, 3, 2);
+    ctx.fillRect(2, 12, 3, 2);
+    ctx.fillRect(11, 12, 3, 2);
+    // Solar flare rays (orange)
+    ctx.fillStyle = '#ee6622';
+    ctx.fillRect(3, 0, 2, 3);
+    ctx.fillRect(11, 0, 2, 3);
+    ctx.fillRect(3, 13, 2, 3);
+    ctx.fillRect(11, 13, 2, 3);
+    ctx.fillRect(0, 3, 3, 2);
+    ctx.fillRect(13, 3, 3, 2);
+    ctx.fillRect(0, 11, 3, 2);
+    ctx.fillRect(13, 11, 3, 2);
+    // Main sun body (deep orange)
+    ctx.fillStyle = '#dd5511';
+    ctx.fillRect(3, 3, 10, 10);
+    ctx.fillRect(2, 5, 12, 6);
+    ctx.fillRect(5, 2, 6, 12);
+    // Sun inner (bright orange)
+    ctx.fillStyle = '#ff8833';
+    ctx.fillRect(4, 4, 8, 8);
+    ctx.fillRect(3, 6, 10, 4);
+    // Sun hot layer (orange-gold)
+    ctx.fillStyle = '#ffaa44';
+    ctx.fillRect(5, 5, 6, 6);
+    ctx.fillRect(4, 7, 8, 2);
+    // Sun bright layer (pale gold)
+    ctx.fillStyle = '#ffcc66';
+    ctx.fillRect(6, 6, 4, 4);
+    // White-hot core
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 2, 2);
+    // Flare ray highlights (bright)
+    ctx.fillStyle = '#ffbb44';
+    ctx.fillRect(3, 0, 1, 2);
+    ctx.fillRect(12, 0, 1, 2);
+    ctx.fillRect(3, 14, 1, 2);
+    ctx.fillRect(12, 14, 1, 2);
+    ctx.fillRect(0, 3, 2, 1);
+    ctx.fillRect(14, 3, 2, 1);
+    ctx.fillRect(0, 12, 2, 1);
+    ctx.fillRect(14, 12, 2, 1);
+  });
+
+  // 22. icon_photon_cannon = laser_beam + attack_speed
+  // MULTIPLE parallel beams (3) with rapid-fire pulse dots, pink-white/magenta
+  generateTexture(scene, 'icon_photon_cannon', 16, 16, (ctx) => {
+    // Beam 1 (top) - outer glow (dark magenta)
+    ctx.fillStyle = '#771144';
+    ctx.fillRect(0, 0, 16, 2);
+    // Beam 1 body (magenta-pink)
+    ctx.fillStyle = '#cc2288';
+    ctx.fillRect(1, 0, 14, 2);
+    // Beam 1 bright core
+    ctx.fillStyle = '#ff66aa';
+    ctx.fillRect(2, 0, 12, 1);
+    // Beam 2 (middle) - outer glow
+    ctx.fillStyle = '#771144';
+    ctx.fillRect(0, 6, 16, 4);
+    // Beam 2 body
+    ctx.fillStyle = '#cc2288';
+    ctx.fillRect(1, 7, 14, 2);
+    // Beam 2 bright core
+    ctx.fillStyle = '#ff66aa';
+    ctx.fillRect(2, 7, 12, 1);
+    // Beam 3 (bottom) - outer glow
+    ctx.fillStyle = '#771144';
+    ctx.fillRect(0, 12, 16, 2);
+    // Beam 3 body
+    ctx.fillStyle = '#cc2288';
+    ctx.fillRect(1, 12, 14, 2);
+    // Beam 3 bright core
+    ctx.fillStyle = '#ff66aa';
+    ctx.fillRect(2, 12, 12, 1);
+    // White-hot core lines
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(3, 0, 10, 1);
+    ctx.fillRect(3, 7, 10, 1);
+    ctx.fillRect(3, 12, 10, 1);
+    // Rapid-fire pulse dots (bright pink-white)
+    ctx.fillStyle = '#ffaacc';
+    ctx.fillRect(2, 3, 2, 2);
+    ctx.fillRect(6, 4, 2, 1);
+    ctx.fillRect(10, 3, 2, 2);
+    ctx.fillRect(4, 10, 2, 1);
+    ctx.fillRect(8, 11, 2, 1);
+    ctx.fillRect(12, 10, 2, 1);
+    // Pulse bright centers
+    ctx.fillStyle = '#ffddff';
+    ctx.fillRect(2, 3, 1, 1);
+    ctx.fillRect(10, 3, 1, 1);
+    // Muzzle emission glow (pink)
+    ctx.fillStyle = '#ff88bb';
+    ctx.fillRect(0, 1, 2, 1);
+    ctx.fillRect(0, 8, 2, 1);
+    ctx.fillRect(0, 13, 2, 1);
+    // Tip flare
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(14, 0, 2, 1);
+    ctx.fillRect(14, 7, 2, 1);
+    ctx.fillRect(14, 12, 2, 1);
+    // Separating space glow (magenta)
+    ctx.fillStyle = '#aa2266';
+    ctx.fillRect(5, 5, 1, 1);
+    ctx.fillRect(10, 5, 1, 1);
+    ctx.fillRect(7, 11, 1, 1);
+  });
+
+  // 23. icon_soul_reaper = death_scythe + splash
+  // Scythe with SOUL VORTEX + purple splash waves
+  generateTexture(scene, 'icon_soul_reaper', 16, 16, (ctx) => {
+    // Splash waves radiating out (dark purple outline)
+    ctx.fillStyle = '#331166';
+    ctx.fillRect(1, 1, 14, 2);
+    ctx.fillRect(0, 3, 2, 2);
+    ctx.fillRect(14, 3, 2, 2);
+    ctx.fillRect(0, 11, 2, 2);
+    ctx.fillRect(14, 11, 2, 2);
+    ctx.fillRect(1, 13, 14, 2);
+    // Splash waves fill (purple)
+    ctx.fillStyle = '#6622aa';
+    ctx.fillRect(3, 2, 10, 1);
+    ctx.fillRect(1, 4, 2, 1);
+    ctx.fillRect(13, 4, 2, 1);
+    ctx.fillRect(1, 11, 2, 1);
+    ctx.fillRect(13, 11, 2, 1);
+    ctx.fillRect(3, 13, 10, 1);
+    // Scythe handle (dark purple-gray)
+    ctx.fillStyle = '#332244';
+    ctx.fillRect(10, 7, 2, 8);
+    ctx.fillRect(12, 8, 2, 6);
+    // Handle highlight
+    ctx.fillStyle = '#443355';
+    ctx.fillRect(11, 7, 1, 8);
+    // Blade curve (deep purple)
+    ctx.fillStyle = '#7722aa';
+    ctx.fillRect(1, 2, 8, 2);
+    ctx.fillRect(3, 4, 7, 2);
+    ctx.fillRect(5, 6, 6, 2);
+    ctx.fillRect(8, 8, 4, 2);
+    // Blade edge highlight (light purple)
+    ctx.fillStyle = '#9944cc';
+    ctx.fillRect(1, 2, 8, 1);
+    ctx.fillRect(3, 4, 1, 1);
+    ctx.fillRect(5, 6, 1, 1);
+    // Sharp edge (dark)
+    ctx.fillStyle = '#110022';
+    ctx.fillRect(1, 3, 2, 1);
+    ctx.fillRect(3, 5, 2, 1);
+    ctx.fillRect(5, 7, 2, 1);
+    // Soul vortex around blade (swirling purple energy)
+    ctx.fillStyle = '#aa55ee';
+    ctx.fillRect(2, 1, 3, 1);
+    ctx.fillRect(8, 3, 3, 1);
+    ctx.fillRect(1, 5, 2, 1);
+    ctx.fillRect(10, 5, 2, 1);
+    ctx.fillRect(3, 8, 2, 1);
+    ctx.fillRect(9, 9, 2, 1);
+    // Vortex bright spots (ghost white)
+    ctx.fillStyle = '#ddbbff';
+    ctx.fillRect(3, 1, 1, 1);
+    ctx.fillRect(9, 3, 1, 1);
+    ctx.fillRect(2, 5, 1, 1);
+    // Vortex center glow (bright)
+    ctx.fillStyle = '#eeccff';
+    ctx.fillRect(5, 3, 2, 2);
+    // Blade tip (bright purple)
+    ctx.fillStyle = '#dd88ff';
+    ctx.fillRect(1, 2, 2, 2);
+    // Splash wave bright accents
+    ctx.fillStyle = '#bb77ee';
+    ctx.fillRect(7, 1, 2, 1);
+    ctx.fillRect(7, 14, 2, 1);
+    ctx.fillRect(0, 7, 1, 2);
+    ctx.fillRect(15, 7, 1, 2);
+    // Ghost-white accent sparkles
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(6, 4, 1, 1);
+    ctx.fillRect(4, 6, 1, 1);
+  });
+
+  // ===================================================================
+  // FUSION AUGMENT/DEFENSE ICONS
+  // ===================================================================
+
+  // 42. icon_wind_runner = swiftness + heal_cloak — boot with green cross glow
+  generateTexture(scene, 'icon_wind_runner', 16, 16, (ctx) => {
+    // Boot shape (yellow-green)
+    ctx.fillStyle = '#88aa22';
+    ctx.fillRect(4, 0, 6, 4);
+    ctx.fillRect(3, 4, 6, 3);
+    ctx.fillRect(2, 7, 10, 3);
+    ctx.fillRect(8, 10, 6, 2);
+    ctx.fillRect(10, 10, 4, 3);
+    // Boot highlight (light green-yellow)
+    ctx.fillStyle = '#bbdd44';
+    ctx.fillRect(5, 1, 4, 3);
+    ctx.fillRect(4, 4, 4, 3);
+    ctx.fillRect(3, 7, 8, 2);
+    // Green cross on boot (heal symbol)
+    ctx.fillStyle = '#44ff66';
+    ctx.fillRect(5, 2, 2, 3);
+    ctx.fillRect(4, 3, 4, 1);
+    // Speed wind lines (pale green)
+    ctx.fillStyle = '#aaddaa';
+    ctx.fillRect(0, 2, 2, 1);
+    ctx.fillRect(0, 5, 2, 1);
+    ctx.fillRect(0, 8, 2, 1);
+    // Sole dark
+    ctx.fillStyle = '#556611';
+    ctx.fillRect(2, 9, 10, 1);
+    ctx.fillRect(10, 12, 4, 1);
+    // Bright accent
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(5, 3, 1, 1);
+  });
+
+  // 43. icon_shield_bash = shield_orbit + reflect_mirror — shield with impact star
+  generateTexture(scene, 'icon_shield_bash', 16, 16, (ctx) => {
+    // Shield body (blue-purple)
+    ctx.fillStyle = '#4433bb';
+    ctx.fillRect(3, 1, 10, 2);
+    ctx.fillRect(2, 3, 12, 2);
+    ctx.fillRect(1, 5, 14, 4);
+    ctx.fillRect(2, 9, 12, 2);
+    ctx.fillRect(3, 11, 10, 2);
+    ctx.fillRect(4, 13, 8, 1);
+    ctx.fillRect(5, 14, 6, 1);
+    // Shield highlight
+    ctx.fillStyle = '#6655dd';
+    ctx.fillRect(4, 2, 8, 2);
+    ctx.fillRect(3, 4, 10, 2);
+    ctx.fillRect(2, 6, 5, 3);
+    // Impact star at center (bright)
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(7, 4, 2, 4);
+    ctx.fillRect(5, 6, 6, 2);
+    ctx.fillRect(6, 5, 4, 4);
+    // Star core (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 6, 2, 2);
+    // Shield border (dark)
+    ctx.fillStyle = '#221188';
+    ctx.fillRect(3, 1, 10, 1);
+    ctx.fillRect(1, 5, 1, 4);
+    ctx.fillRect(14, 5, 1, 4);
+    // Reflect gleam
+    ctx.fillStyle = '#aabbff';
+    ctx.fillRect(12, 3, 1, 1);
+    ctx.fillRect(4, 4, 1, 1);
+  });
+
+  // 44. icon_void_walker = ghost_step + speed — dark ghost with speed trails
+  generateTexture(scene, 'icon_void_walker', 16, 16, (ctx) => {
+    // Ghost body (dark blue-purple)
+    ctx.fillStyle = '#4433aa';
+    ctx.fillRect(4, 1, 8, 6);
+    ctx.fillRect(3, 2, 10, 4);
+    ctx.fillRect(2, 4, 12, 3);
+    ctx.fillRect(2, 7, 12, 5);
+    ctx.fillRect(2, 12, 3, 2);
+    ctx.fillRect(6, 12, 4, 2);
+    ctx.fillRect(11, 12, 3, 2);
+    // Ghost highlight
+    ctx.fillStyle = '#6655cc';
+    ctx.fillRect(5, 2, 6, 4);
+    ctx.fillRect(3, 5, 10, 4);
+    // Eyes (bright purple)
+    ctx.fillStyle = '#bb88ff';
+    ctx.fillRect(5, 4, 2, 3);
+    ctx.fillRect(9, 4, 2, 3);
+    // Eye cores (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(5, 5, 1, 1);
+    ctx.fillRect(9, 5, 1, 1);
+    // Speed trails behind ghost
+    ctx.fillStyle = '#8877dd';
+    ctx.fillRect(0, 3, 2, 1);
+    ctx.fillRect(0, 6, 2, 1);
+    ctx.fillRect(0, 9, 2, 1);
+    ctx.fillRect(0, 12, 2, 1);
+    // Void wisps
+    ctx.fillStyle = '#9988ee';
+    ctx.fillRect(4, 13, 1, 1);
+    ctx.fillRect(8, 13, 1, 1);
+    // Dark outline accent
+    ctx.fillStyle = '#221166';
+    ctx.fillRect(4, 1, 8, 1);
+    ctx.fillRect(2, 7, 1, 5);
+    ctx.fillRect(13, 7, 1, 5);
+  });
+
+  // 45. icon_black_hole = repulse + magnet — purple vortex pulling inward
+  generateTexture(scene, 'icon_black_hole', 16, 16, (ctx) => {
+    // Outer spiral arms (dark purple)
+    ctx.fillStyle = '#5522aa';
+    ctx.fillRect(1, 0, 3, 2);
+    ctx.fillRect(0, 2, 2, 3);
+    ctx.fillRect(12, 0, 3, 2);
+    ctx.fillRect(14, 2, 2, 3);
+    ctx.fillRect(0, 11, 2, 3);
+    ctx.fillRect(1, 13, 3, 2);
+    ctx.fillRect(14, 11, 2, 3);
+    ctx.fillRect(12, 13, 3, 2);
+    // Mid spiral (purple)
+    ctx.fillStyle = '#7744cc';
+    ctx.fillRect(3, 2, 3, 2);
+    ctx.fillRect(2, 4, 2, 3);
+    ctx.fillRect(10, 2, 3, 2);
+    ctx.fillRect(12, 4, 2, 3);
+    ctx.fillRect(2, 9, 2, 3);
+    ctx.fillRect(3, 12, 3, 2);
+    ctx.fillRect(12, 9, 2, 3);
+    ctx.fillRect(10, 12, 3, 2);
+    // Inner vortex ring (bright purple)
+    ctx.fillStyle = '#9966ee';
+    ctx.fillRect(5, 5, 6, 2);
+    ctx.fillRect(4, 6, 2, 4);
+    ctx.fillRect(10, 6, 2, 4);
+    ctx.fillRect(5, 9, 6, 2);
+    // Vortex center (dark)
+    ctx.fillStyle = '#110033';
+    ctx.fillRect(6, 7, 4, 2);
+    // Pull-in arrows (bright)
+    ctx.fillStyle = '#bbaaff';
+    ctx.fillRect(7, 1, 2, 2);
+    ctx.fillRect(7, 13, 2, 2);
+    ctx.fillRect(1, 7, 2, 2);
+    ctx.fillRect(13, 7, 2, 2);
+    // Center point (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 2, 2);
+    // Attraction dots
+    ctx.fillStyle = '#ddbbff';
+    ctx.fillRect(3, 1, 1, 1);
+    ctx.fillRect(12, 1, 1, 1);
+    ctx.fillRect(3, 14, 1, 1);
+    ctx.fillRect(12, 14, 1, 1);
+  });
+
+  // 46. icon_absolute_defense = shield + armor + reflect — layered prismatic shield
+  generateTexture(scene, 'icon_absolute_defense', 16, 16, (ctx) => {
+    // Outer shield layer (blue)
+    ctx.fillStyle = '#2244cc';
+    ctx.fillRect(3, 1, 10, 2);
+    ctx.fillRect(1, 3, 3, 2);
+    ctx.fillRect(12, 3, 3, 2);
+    ctx.fillRect(0, 5, 2, 2);
+    ctx.fillRect(14, 5, 2, 2);
+    ctx.fillRect(0, 9, 2, 2);
+    ctx.fillRect(14, 9, 2, 2);
+    ctx.fillRect(1, 11, 3, 2);
+    ctx.fillRect(12, 11, 3, 2);
+    ctx.fillRect(3, 13, 10, 2);
+    // Mid armor layer (silver)
+    ctx.fillStyle = '#8899bb';
+    ctx.fillRect(5, 3, 6, 2);
+    ctx.fillRect(3, 5, 3, 2);
+    ctx.fillRect(10, 5, 3, 2);
+    ctx.fillRect(3, 9, 3, 2);
+    ctx.fillRect(10, 9, 3, 2);
+    ctx.fillRect(5, 11, 6, 2);
+    // Inner reflect surface (gold)
+    ctx.fillStyle = '#ddaa33';
+    ctx.fillRect(6, 5, 4, 2);
+    ctx.fillRect(5, 6, 2, 4);
+    ctx.fillRect(9, 6, 2, 4);
+    ctx.fillRect(6, 9, 4, 2);
+    // Center emblem (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(6, 6, 4, 4);
+    ctx.fillRect(7, 5, 2, 6);
+    ctx.fillRect(5, 7, 6, 2);
+    // Reflect shine line
+    ctx.fillStyle = '#ffeecc';
+    ctx.fillRect(6, 6, 2, 1);
+    // Layer separation lines (dark)
+    ctx.fillStyle = '#112244';
+    ctx.fillRect(5, 3, 1, 1);
+    ctx.fillRect(10, 3, 1, 1);
+    ctx.fillRect(5, 12, 1, 1);
+    ctx.fillRect(10, 12, 1, 1);
+    // Bright shield tips
+    ctx.fillStyle = '#6688ff';
+    ctx.fillRect(7, 0, 2, 1);
+    ctx.fillRect(7, 15, 2, 1);
+    ctx.fillRect(0, 7, 1, 2);
+    ctx.fillRect(15, 7, 1, 2);
+  });
+
+  // 47. icon_angel_embrace = holy_guard + ghost_step + heal — angel wings with cross
+  generateTexture(scene, 'icon_angel_embrace', 16, 16, (ctx) => {
+    // Left wing (white-gold)
+    ctx.fillStyle = '#ddcc66';
+    ctx.fillRect(1, 3, 3, 2);
+    ctx.fillRect(0, 5, 4, 2);
+    ctx.fillRect(0, 7, 5, 2);
+    ctx.fillRect(1, 9, 4, 2);
+    ctx.fillRect(2, 11, 3, 2);
+    // Right wing (white-gold)
+    ctx.fillRect(12, 3, 3, 2);
+    ctx.fillRect(12, 5, 4, 2);
+    ctx.fillRect(11, 7, 5, 2);
+    ctx.fillRect(11, 9, 4, 2);
+    ctx.fillRect(11, 11, 3, 2);
+    // Wing highlight (bright gold)
+    ctx.fillStyle = '#ffee88';
+    ctx.fillRect(1, 3, 2, 2);
+    ctx.fillRect(0, 5, 3, 2);
+    ctx.fillRect(0, 7, 4, 2);
+    ctx.fillRect(13, 3, 2, 2);
+    ctx.fillRect(13, 5, 3, 2);
+    ctx.fillRect(12, 7, 4, 2);
+    // Central cross (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 2, 2, 8);
+    ctx.fillRect(5, 5, 6, 2);
+    // Cross glow (pale gold)
+    ctx.fillStyle = '#ffffcc';
+    ctx.fillRect(7, 3, 2, 6);
+    ctx.fillRect(6, 5, 4, 2);
+    // Halo above cross (gold ring)
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(6, 0, 4, 1);
+    ctx.fillRect(5, 1, 1, 1);
+    ctx.fillRect(10, 1, 1, 1);
+    ctx.fillRect(6, 2, 4, 1);
+    // Wing tips bright
+    ctx.fillStyle = '#ffffaa';
+    ctx.fillRect(0, 7, 2, 1);
+    ctx.fillRect(14, 7, 2, 1);
+    // Divine rays (pale)
+    ctx.fillStyle = '#eeeecc';
+    ctx.fillRect(5, 13, 2, 1);
+    ctx.fillRect(9, 13, 2, 1);
+    ctx.fillRect(7, 14, 2, 1);
+    // Bright center
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 5, 2, 2);
+  });
+
+  // 48. icon_nuclear_core = power + splash — nuclear trefoil with explosion
+  generateTexture(scene, 'icon_nuclear_core', 16, 16, (ctx) => {
+    // Trefoil — three rounded sectors (orange-red)
+    ctx.fillStyle = '#dd4400';
+    // Top sector
+    ctx.fillRect(5, 1, 6, 2);
+    ctx.fillRect(4, 3, 3, 2);
+    ctx.fillRect(9, 3, 3, 2);
+    // Bottom-left sector
+    ctx.fillRect(1, 8, 3, 2);
+    ctx.fillRect(2, 10, 3, 2);
+    ctx.fillRect(4, 11, 3, 2);
+    // Bottom-right sector
+    ctx.fillRect(12, 8, 3, 2);
+    ctx.fillRect(11, 10, 3, 2);
+    ctx.fillRect(9, 11, 3, 2);
+    // Sector highlights (bright orange)
+    ctx.fillStyle = '#ff7722';
+    ctx.fillRect(6, 1, 4, 2);
+    ctx.fillRect(4, 3, 2, 2);
+    ctx.fillRect(2, 10, 2, 2);
+    ctx.fillRect(12, 10, 2, 2);
+    // Center circle (yellow warning)
+    ctx.fillStyle = '#ffcc22';
+    ctx.fillRect(6, 6, 4, 4);
+    ctx.fillRect(5, 7, 6, 2);
+    // Center bright (white)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 7, 2, 2);
+    // Explosion ring around trefoil
+    ctx.fillStyle = '#ff9944';
+    ctx.fillRect(3, 0, 2, 1);
+    ctx.fillRect(11, 0, 2, 1);
+    ctx.fillRect(0, 4, 1, 2);
+    ctx.fillRect(15, 4, 1, 2);
+    ctx.fillRect(0, 10, 1, 2);
+    ctx.fillRect(15, 10, 1, 2);
+    ctx.fillRect(3, 15, 2, 1);
+    ctx.fillRect(11, 15, 2, 1);
+    // Warning dots (bright yellow)
+    ctx.fillStyle = '#ffee44';
+    ctx.fillRect(4, 5, 1, 1);
+    ctx.fillRect(11, 5, 1, 1);
+    ctx.fillRect(7, 12, 2, 1);
   });
 }
 

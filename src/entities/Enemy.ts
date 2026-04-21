@@ -124,7 +124,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
       if (e.type === 'poison') {
         const dps = e.value;
-        const dt = this.scene.game.loop.delta / 1000;
+        const dt = Math.min(this.scene.game.loop.delta / 1000, 0.05);
         this.hp -= dps * dt;
         if (this.hp <= 0) this.die();
       }

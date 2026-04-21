@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { SKILLS } from '../data/skills';
+import { ALL_ITEMS } from '../data/items';
 import { addScore } from '../utils/leaderboard';
 
 export class GameOverScene extends Phaser.Scene {
@@ -9,7 +9,7 @@ export class GameOverScene extends Phaser.Scene {
     super({ key: 'GameOverScene' });
   }
 
-  create(data: { score: number; kills: number; wave: number; skills: { id: string; level: number }[] }) {
+  create(data: { score: number; kills: number; wave: number; skills: { id: string; level: number }[]; endingText?: string }) {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#0a0a1a');
 
@@ -23,6 +23,13 @@ export class GameOverScene extends Phaser.Scene {
     this.add.text(width / 2, height * 0.08, '游戏结束', {
       fontSize: `${titleSize}px`, color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5);
+
+    // Narrative ending text
+    if (data.endingText) {
+      this.add.text(width / 2, height * 0.15, data.endingText, {
+        fontSize: `${smallSize}px`, color: '#cc99ff', fontFamily: 'monospace', fontStyle: 'italic',
+      }).setOrigin(0.5);
+    }
 
     // Stats
     const stats = [
@@ -44,10 +51,10 @@ export class GameOverScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       data.skills.forEach((skill, i) => {
-        const def = SKILLS[skill.id];
+        const def = ALL_ITEMS[skill.id];
         if (def) {
           this.add.text(width / 2, height * 0.50 + i * (smallSize + 6), `${def.name} Lv.${skill.level}`, {
-            fontSize: `${smallSize}px`, color: def.icon, fontFamily: 'monospace',
+            fontSize: `${smallSize}px`, color: def.color, fontFamily: 'monospace',
           }).setOrigin(0.5);
         }
       });
@@ -70,9 +77,10 @@ export class GameOverScene extends Phaser.Scene {
     this.nameInput.style.cssText = `
       position: fixed; left: 50%; top: ${inputY}px; transform: translateX(-50%);
       width: ${inputW}px; padding: 8px 12px; font-size: ${inputFontSize}; text-align: center;
-      font-family: monospace; background: #222233; color: #fff; border: 2px solid #44ddff;
-      border-radius: 6px; outline: none; z-index: 100;
-      ${isMobile ? 'border-radius: 8px; padding: 10px 14px;' : ''}
+      font-family: monospace; background: #222233; color: #fff; border: 2px solid #ffdd44;
+      border-radius: 0px; outline: none; z-index: 100;
+      box-shadow: 0 0 0 2px #000000, 0 0 10px #ffdd4444;
+      ${isMobile ? 'padding: 10px 14px; font-size: 20px;' : ''}
     `;
     document.body.appendChild(this.nameInput);
     if (!isMobile) this.nameInput.focus();

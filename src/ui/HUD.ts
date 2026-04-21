@@ -46,6 +46,28 @@ const ITEM_ICON_MAP: Record<string, string> = {
   magnet: 'icon_magnet',
   reflect_mirror: 'icon_reflect_mirror',
   holy_guard: 'icon_holy_guard',
+  // Fusion weapons
+  freeze_shotgun: 'icon_freeze_shotgun',
+  hellfire: 'icon_hellfire',
+  death_wheel: 'icon_death_wheel',
+  mega_blaster: 'icon_mega_blaster',
+  thunder_slash: 'icon_thunder_slash',
+  fragment_bomb: 'icon_fragment_bomb',
+  thunderstorm: 'icon_thunderstorm',
+  tracking_fireball: 'icon_tracking_fireball',
+  frost_storm: 'icon_frost_storm',
+  plague_bomb: 'icon_plague_bomb',
+  sun_storm: 'icon_sun_storm',
+  photon_cannon: 'icon_photon_cannon',
+  soul_reaper: 'icon_soul_reaper',
+  // Fusion augments & defenses
+  wind_runner: 'icon_wind_runner',
+  shield_bash: 'icon_shield_bash',
+  void_walker: 'icon_void_walker',
+  black_hole: 'icon_black_hole',
+  absolute_defense: 'icon_absolute_defense',
+  angel_embrace: 'icon_angel_embrace',
+  nuclear_core: 'icon_nuclear_core',
 };
 
 /** Get icon key for an item, falling back to base category icon for fusion items */
@@ -165,8 +187,8 @@ export class HUD {
     const catBg = this.scene.add.rectangle(x + 2, y + 2, slotSize - 4, slotSize - 4, 0x333355)
       .setDepth(51.5).setScrollFactor(0).setVisible(false);
 
-    const iconScale = slotSize / 20;
-    const image = this.scene.add.image(x + slotSize / 2, y + slotSize / 2, 'item_pickup')
+    const iconScale = (slotSize * 0.8) / 16;
+    const image = this.scene.add.image(x + slotSize / 2, y + slotSize / 2, 'icon_basic_shot')
       .setScale(iconScale).setDepth(52).setScrollFactor(0).setVisible(false);
 
     const level = this.scene.add.text(x + slotSize - 3, y + slotSize - 3, '', {
@@ -177,6 +199,13 @@ export class HUD {
 
     this.skillIcons.push({ bg, catBg, image, level });
   }
+
+  // Cached values to skip redundant text updates
+  private lastHpText = '';
+  private lastScoreText = '';
+  private lastKillText = '';
+  private lastWaveText = '';
+  private lastTimerText = '';
 
   update(player: Player, scoreSystem: ScoreSystem, waveSystem: WaveSystem, time: number) {
     // Expand skill bar if player has more skills than current slots
@@ -201,12 +230,33 @@ export class HUD {
     const hpBarW = Math.round(150 * scale);
 
     this.hpBar.width = hpBarW * hpRatio;
-    this.hpText.setText(`${Math.ceil(player.hp)}/${player.maxHp}`);
-    this.scoreText.setText(`分数: ${scoreSystem.getScore()}`);
-    this.killText.setText(`击杀: ${scoreSystem.getKillCount()}`);
-    this.waveText.setText(`第 ${waveSystem.currentWave} 波`);
+
+    // HP bar color gradient: green -> yellow -> red + low-HP pulse
+    let hpColor: number;
+    if (hpRatio > 0.6) {
+      hpColor = 0x44ff66;
+    } else if (hpRatio > 0.3) {
+      hpColor = 0xffdd44;
+    } else {
+      hpColor = 0xff3344;
+    }
+    this.hpBar.setFillStyle(hpColor);
+    if (hpRatio < 0.3) {
+      this.hpBar.setAlpha(0.7 + Math.sin(time / 200) * 0.3);
+    } else {
+      this.hpBar.setAlpha(1);
+    }
+    const hpStr = `${Math.ceil(player.hp)}/${player.maxHp}`;
+    if (hpStr !== this.lastHpText) { this.hpText.setText(hpStr); this.lastHpText = hpStr; }
+    const scoreStr = `分数: ${scoreSystem.getScore()}`;
+    if (scoreStr !== this.lastScoreText) { this.scoreText.setText(scoreStr); this.lastScoreText = scoreStr; }
+    const killStr = `击杀: ${scoreSystem.getKillCount()}`;
+    if (killStr !== this.lastKillText) { this.killText.setText(killStr); this.lastKillText = killStr; }
+    const waveStr = `第 ${waveSystem.currentWave} 波`;
+    if (waveStr !== this.lastWaveText) { this.waveText.setText(waveStr); this.lastWaveText = waveStr; }
     const remaining = Math.ceil(waveSystem.getRemainingTime(time) / 1000);
-    this.timerText.setText(`下一波: ${remaining}s`);
+    const timerStr = `下一波: ${remaining}s`;
+    if (timerStr !== this.lastTimerText) { this.timerText.setText(timerStr); this.lastTimerText = timerStr; }
 
     for (let i = 0; i < this.maxSlots; i++) {
       const slot = this.skillIcons[i];

@@ -25,8 +25,14 @@ export function getWaveConfig(waveNumber: number): WaveConfig {
     tiers = ['medium', 'hard', 'boss'];
   } else if (waveNumber <= 9) {
     tiers = ['medium', 'hard'];
-  } else {
+  } else if (waveNumber <= 15) {
     tiers = ['hard'];
+  } else {
+    // Post-wave 16: keep escalating with all tiers for variety
+    tiers = ['hard', 'hard', 'medium'];
+    // Boost difficulty beyond linear
+    base.hpMultiplier *= 1 + (waveNumber - 15) * 0.05;
+    base.speedMultiplier = Math.min(base.speedMultiplier * 1.02, 3.0);
   }
 
   return { ...base, availableTiers: tiers };

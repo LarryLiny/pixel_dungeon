@@ -6,8 +6,8 @@ export class UpgradeSystem {
   private levels: Record<string, number>;
   private goldSystem: { getGold(): number; spendGold(amount: number): boolean };
 
-  constructor(goldSystem: { getGold(): number; spendGold(amount: number): boolean }) {
-    this.goldSystem = goldSystem;
+  constructor(goldSystem?: { getGold(): number; spendGold(amount: number): boolean }) {
+    this.goldSystem = goldSystem ?? { getGold: () => 0, spendGold: () => false };
     this.levels = this.loadLevels();
   }
 

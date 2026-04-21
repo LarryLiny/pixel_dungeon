@@ -43,6 +43,10 @@ export class AutoShootSystem {
   lightningGraphics: Phaser.GameObjects.Graphics | null = null;
   lastLightningTime: number = 0;
 
+  // Cached enemy list (rebuilt once per frame)
+  private cachedEnemies: Enemy[] = [];
+  private lastEnemyCacheFrame: number = -1;
+
   // Poison clouds
   poisonClouds: PoisonCloud[] = [];
 
@@ -63,38 +67,22 @@ export class AutoShootSystem {
     if (!this.player.isAlive) return;
 
     const mod = this.player.modifiers;
-    const weaponType = mod.weaponType;
+    const active = mod.activeWeapon;
+    const passive = mod.passiveWeapon;
 
     // ── Bullet recycling & boomerang update ──
     this.updateBullets(enemies);
 
-    // ── Weapon-type specific update systems ──
-    // Orbiting fireballs (fireball_orbit, hellfire, tracking_fireball, sun_storm)
-    if (weaponType === 'fireball_orbit' || weaponType === 'hellfire' || weaponType === 'tracking_fireball' || weaponType === 'sun_storm') {
+    // ── Passive weapon effects (run alongside active weapon) ──
+    // Orbiting fireballs (passive)
+    if (passive === 'fireball_orbit' || passive === 'hellfire' || passive === 'tracking_fireball' || passive === 'sun_storm') {
       this.updateOrbs(time, enemies);
     } else {
       this.clearOrbs();
     }
 
-    // Sword slash (sword_slash, thunder_slash)
-    if (weaponType === 'sword_slash' || weaponType === 'thunder_slash') {
-      this.updateSwordSlash(time, enemies);
-    }
-
-    // Ice wave (ice_wave, frost_storm)
-    if (weaponType === 'ice_wave' || weaponType === 'frost_storm') {
-      this.updateIceWave(time, enemies);
-    }
-
-    // Laser beam (laser_beam, photon_cannon)
-    if (weaponType === 'laser_beam' || weaponType === 'photon_cannon') {
-      this.updateLaserBeam(time, enemies);
-    } else {
-      this.clearLaser();
-    }
-
-    // Lightning (lightning, thunderstorm) — no bullets, direct damage + chain
-    if (weaponType === 'lightning' || weaponType === 'thunderstorm') {
+    // Lightning chain (passive)
+    if (passive === 'lightning' || passive === 'thunderstorm') {
       this.updateLightning(time, enemies);
     } else {
       this.clearLightning();
@@ -103,8 +91,25 @@ export class AutoShootSystem {
     // Poison clouds update
     this.updatePoisonClouds(time, enemies);
 
-    // ── Bullet-firing weapons ──
-    // These weapons fire actual bullet projectiles on a timer
+    // ── Active weapon effects ──
+    // Sword slash
+    if (active === 'sword_slash' || active === 'thunder_slash') {
+      this.updateSwordSlash(time, enemies);
+    }
+
+    // Ice wave
+    if (active === 'ice_wave' || active === 'frost_storm') {
+      this.updateIceWave(time, enemies);
+    }
+
+    // Laser beam
+    if (active === 'laser_beam' || active === 'photon_cannon') {
+      this.updateLaserBeam(time, enemies);
+    } else {
+      this.clearLaser();
+    }
+
+    // ── Bullet-firing active weapons ──
     const bulletFiringWeapons = [
       'basic_shot', 'shotgun', 'freeze_shotgun', 'fragment_bomb',
       'boomerang', 'death_wheel',
@@ -113,7 +118,7 @@ export class AutoShootSystem {
       'mega_blaster',
     ];
 
-    if (!bulletFiringWeapons.includes(weaponType)) return;
+    if (!bulletFiringWeapons.includes(active)) return;
 
     const effectiveInterval = this.shootInterval * (mod.attackSpeedMul || 1.0);
     if (time - this.lastShootTime < effectiveInterval) return;
@@ -125,19 +130,19 @@ export class AutoShootSystem {
     this.lastShootTime = time;
     const damage = BULLET_DAMAGE * mod.damageMul;
 
-    switch (weaponType) {
+    switch (active) {
       // ── 1. basic_shot: yellow single bullet ──
       case 'basic_shot':
       default: {
         const extraShots = mod.shotCount;
         if (extraShots === 0) {
-          this.fireBullet(nearest.x, nearest.y, damage, 0, weaponType);
+          this.fireBullet(nearest.x, nearest.y, damage, 0, active);
         } else {
           const spreadAngle = 0.1 * extraShots;
           for (let i = 0; i < 1 + extraShots; i++) {
             const angleOffset = (1 + extraShots) > 1
               ? -spreadAngle / 2 + (spreadAngle * i) / extraShots : 0;
-            this.fireBullet(nearest.x, nearest.y, damage, angleOffset, weaponType);
+            this.fireBullet(nearest.x, nearest.y, damage, angleOffset, active);
           }
         }
         break;
@@ -152,8 +157,8 @@ export class AutoShootSystem {
         for (let i = 0; i < count; i++) {
           const angleOffset = count > 1
             ? -spreadAngle / 2 + (spreadAngle * i) / (count - 1) : 0;
-          const bulletDamage = weaponType === 'fragment_bomb' ? damage * 0.5 : damage * 0.6;
-          this.fireBullet(nearest.x, nearest.y, bulletDamage, angleOffset, weaponType);
+          const bulletDamage = active === 'fragment_bomb' ? damage * 0.5 : damage * 0.6;
+          this.fireBullet(nearest.x, nearest.y, bulletDamage, angleOffset, active);
         }
         break;
       }
@@ -168,8 +173,8 @@ export class AutoShootSystem {
         for (let i = 0; i < total; i++) {
           const angleOffset = total > 1
             ? -boomerangSpread / 2 + (boomerangSpread * i) / (total - 1) : 0;
-          const dmg = weaponType === 'death_wheel' ? damage * 1.2 : damage * 0.9;
-          this.fireBoomerang(nearest.x, nearest.y, dmg, angleOffset, weaponType);
+          const dmg = active === 'death_wheel' ? damage * 1.2 : damage * 0.9;
+          this.fireBoomerang(nearest.x, nearest.y, dmg, angleOffset, active);
         }
         break;
       }
@@ -177,14 +182,14 @@ export class AutoShootSystem {
       // ── 8. poison_snake / plague_bomb: green bullet leaving poison clouds ──
       case 'poison_snake':
       case 'plague_bomb': {
-        const poisonDmg = weaponType === 'plague_bomb' ? damage * 0.5 : damage * 0.7;
+        const poisonDmg = active === 'plague_bomb' ? damage * 0.5 : damage * 0.7;
         const cloudDps = mod.poisonDpsField || 5;
-        this.firePoisonBullet(nearest.x, nearest.y, poisonDmg, 0, weaponType, cloudDps);
+        this.firePoisonBullet(nearest.x, nearest.y, poisonDmg, 0, active, cloudDps);
         // plague_bomb fires extra shots
-        if (weaponType === 'plague_bomb' && mod.shotCount > 0) {
+        if (active === 'plague_bomb' && mod.shotCount > 0) {
           for (let i = 0; i < mod.shotCount; i++) {
             const angleOffset = (Math.random() - 0.5) * 0.4;
-            this.firePoisonBullet(nearest.x, nearest.y, poisonDmg * 0.7, angleOffset, weaponType, cloudDps);
+            this.firePoisonBullet(nearest.x, nearest.y, poisonDmg * 0.7, angleOffset, active, cloudDps);
           }
         }
         break;
@@ -193,14 +198,14 @@ export class AutoShootSystem {
       // ── 10. death_scythe / soul_reaper: large purple execute bullet ──
       case 'death_scythe':
       case 'soul_reaper': {
-        const scytheDamage = weaponType === 'soul_reaper' ? damage * 2.0 : damage * 1.5;
-        this.fireScytheBullet(nearest.x, nearest.y, scytheDamage, 0, weaponType);
+        const scytheDamage = active === 'soul_reaper' ? damage * 2.0 : damage * 1.5;
+        this.fireScytheBullet(nearest.x, nearest.y, scytheDamage, 0, active);
         break;
       }
 
       // ── mega_blaster fallback ──
       case 'mega_blaster': {
-        this.fireBullet(nearest.x, nearest.y, damage * 2.0, 0, weaponType, 0, 0, 0, true);
+        this.fireBullet(nearest.x, nearest.y, damage * 2.0, 0, active, 0, 0, 0, true);
         break;
       }
     }
@@ -223,8 +228,8 @@ export class AutoShootSystem {
       }
 
       // Standard range recycling
-      const dx = b.x - b.originX;
-      const dy = b.y - b.originY;
+      const dx = b.x - b.spawnX;
+      const dy = b.y - b.spawnY;
       if (dx * dx + dy * dy > BULLET_RANGE * BULLET_RANGE) {
         b.recycle();
       }
@@ -247,14 +252,7 @@ export class AutoShootSystem {
     executeThreshold: number = 0,
     mega: boolean = false,
   ) {
-    let bullet = this.bullets.get(this.player.x, this.player.y) as Bullet | null;
-    if (!bullet) {
-      const active = this.bullets.getChildren().find(b => (b as Bullet).active) as Bullet | undefined;
-      if (active) {
-        active.recycle();
-        bullet = this.bullets.get(this.player.x, this.player.y) as Bullet;
-      }
-    }
+    let bullet = this.getBulletFromPool();
     if (!bullet) return;
 
     bullet.setPosition(this.player.x, this.player.y);
@@ -293,14 +291,7 @@ export class AutoShootSystem {
     targetX: number, targetY: number, damage: number, angleOffset: number,
     weaponType: string,
   ) {
-    let bullet = this.bullets.get(this.player.x, this.player.y) as Bullet | null;
-    if (!bullet) {
-      const active = this.bullets.getChildren().find(b => (b as Bullet).active) as Bullet | undefined;
-      if (active) {
-        active.recycle();
-        bullet = this.bullets.get(this.player.x, this.player.y) as Bullet;
-      }
-    }
+    let bullet = this.getBulletFromPool();
     if (!bullet) return;
 
     bullet.setPosition(this.player.x, this.player.y);
@@ -309,7 +300,7 @@ export class AutoShootSystem {
     const speed = BULLET_SPEED * mod.bulletSpeedMul * 0.85;
 
     bullet.damage = damage;
-    bullet.pierce = mod.pierce + 3; // boomerangs pierce through multiple enemies
+    bullet.pierce = Math.min(mod.pierce + 2, 8); // boomerangs pierce, capped at 8
     bullet.pierceCount = 0;
     bullet.chainCount = 0;
     bullet.splashRadius = weaponType === 'death_wheel' ? 25 : 0;
@@ -341,14 +332,7 @@ export class AutoShootSystem {
     targetX: number, targetY: number, damage: number, angleOffset: number,
     weaponType: string, cloudDps: number,
   ) {
-    let bullet = this.bullets.get(this.player.x, this.player.y) as Bullet | null;
-    if (!bullet) {
-      const active = this.bullets.getChildren().find(b => (b as Bullet).active) as Bullet | undefined;
-      if (active) {
-        active.recycle();
-        bullet = this.bullets.get(this.player.x, this.player.y) as Bullet;
-      }
-    }
+    let bullet = this.getBulletFromPool();
     if (!bullet) return;
 
     bullet.setPosition(this.player.x, this.player.y);
@@ -370,7 +354,7 @@ export class AutoShootSystem {
     bullet.returning = false;
     bullet.playerRef = null;
 
-    bullet.setScale(1.3 * mod.bulletSizeMul);
+    bullet.setScale(1.5 * mod.bulletSizeMul);
     bullet.setTint(0x44cc22); // green poison
 
     // Store cloud dps for on-hit handling
@@ -399,7 +383,7 @@ export class AutoShootSystem {
   }
 
   private updatePoisonClouds(time: number, enemies: Enemy[]) {
-    const dt = this.scene.game.loop.delta / 1000;
+    const dt = Math.min(this.scene.game.loop.delta / 1000, 0.05);
     this.poisonClouds = this.poisonClouds.filter(cloud => {
       const elapsed = time - cloud.startTime;
       if (elapsed >= cloud.duration) {
@@ -430,14 +414,7 @@ export class AutoShootSystem {
     targetX: number, targetY: number, damage: number, angleOffset: number,
     weaponType: string,
   ) {
-    let bullet = this.bullets.get(this.player.x, this.player.y) as Bullet | null;
-    if (!bullet) {
-      const active = this.bullets.getChildren().find(b => (b as Bullet).active) as Bullet | undefined;
-      if (active) {
-        active.recycle();
-        bullet = this.bullets.get(this.player.x, this.player.y) as Bullet;
-      }
-    }
+    let bullet = this.getBulletFromPool();
     if (!bullet) return;
 
     bullet.setPosition(this.player.x, this.player.y);
@@ -473,12 +450,12 @@ export class AutoShootSystem {
   private updateOrbs(time: number, enemies: Enemy[]) {
     const mod = this.player.modifiers;
     const targetCount = mod.orbCount;
-    const weaponType = mod.weaponType;
+    const weaponType = mod.passiveWeapon;
 
     // Spawn or remove orbs to match target count
     while (this.orbs.length < targetCount) {
       const orb = this.scene.physics.add.sprite(this.player.x, this.player.y, 'fireball_orb') as Phaser.Physics.Arcade.Sprite;
-      orb.setScale(1.8).setDepth(9);
+      orb.setScale(1.5).setDepth(9);
       this.orbs.push(orb);
     }
     while (this.orbs.length > targetCount) {
@@ -493,19 +470,19 @@ export class AutoShootSystem {
     for (let i = 0; i < this.orbs.length; i++) {
       const orb = this.orbs[i];
 
-      // Tint based on weapon type
+      // Tint based on weapon type (all scales are 0.5 multiples for pixel-art crispness)
       if (weaponType === 'hellfire') {
         orb.setTint(0xff4400);
-        orb.setScale(2.0);
+        orb.setScale(1.5);
       } else if (weaponType === 'sun_storm') {
         orb.setTint(0xff8800);
-        orb.setScale(2.5);
+        orb.setScale(2.0);
       } else if (weaponType === 'tracking_fireball') {
         orb.setTint(0xff2200);
-        orb.setScale(1.6);
+        orb.setScale(1.5);
       } else {
         orb.setTint(0xff4400);
-        orb.setScale(1.8);
+        orb.setScale(1.5);
       }
 
       // Orbit position
@@ -538,12 +515,15 @@ export class AutoShootSystem {
         body.setSize(12, 12);
       }
 
-      // Damage enemies touching orbs
+      // Damage enemies touching orbs (with per-enemy cooldown to prevent frame-rate-dependent DPS)
       for (const enemy of enemies) {
         if (!enemy.isAlive || !enemy.active) continue;
         const dist = distance(ox, oy, enemy.x, enemy.y);
         if (dist < 18) {
-          enemy.takeDamage(orbDamage);
+          // Apply orb damage using delta time for frame-rate independence
+          const dt = Math.min(this.scene.game.loop.delta / 1000, 0.05);
+          const dmgPerFrame = orbDamage * dt * 3; // ~3 hits per second equivalent
+          enemy.takeDamage(dmgPerFrame);
           if (!enemy.isAlive && this.onOrbKill) {
             this.onOrbKill(enemy);
           }
@@ -563,7 +543,7 @@ export class AutoShootSystem {
 
   private updateLightning(time: number, enemies: Enemy[]) {
     const mod = this.player.modifiers;
-    const weaponType = mod.weaponType;
+    const weaponType = mod.passiveWeapon;
     const interval = (weaponType === 'thunderstorm' ? 400 : 600) * (mod.attackSpeedMul || 1.0);
 
     if (time - this.lastLightningTime < interval) return;
@@ -622,10 +602,11 @@ export class AutoShootSystem {
         }
       }
       if (closest) {
-        // Slight delay for visual chaining effect
+        // Capture target position at chain time for visual, re-validate enemy liveness
+        const chainTarget = closest;
         this.scene.time.delayedCall(60, () => {
-          if (closest!.isAlive) {
-            this.strikeLightning(target.x, target.y, closest!, damage * 0.7, chainsLeft - 1, enemies);
+          if (chainTarget.isAlive && chainTarget.active) {
+            this.strikeLightning(target.x, target.y, chainTarget, damage * 0.7, chainsLeft - 1, enemies);
           }
         });
       }
@@ -690,14 +671,14 @@ export class AutoShootSystem {
 
   private updateSwordSlash(time: number, enemies: Enemy[]) {
     const mod = this.player.modifiers;
-    const weaponType = mod.weaponType;
+    const weaponType = mod.activeWeapon;
     const slashInterval = (weaponType === 'thunder_slash' ? 500 : 600) * (mod.attackSpeedMul || 1.0);
 
     if (time - this.lastSlashTime < slashInterval) return;
     this.lastSlashTime = time;
 
     // Find nearest enemy for slash direction
-    const allEnemies = this.getEnemiesFromPhysics();
+    const allEnemies = enemies;
 
     let nearest: Enemy | null = null;
     let nearestDist = Infinity;
@@ -792,14 +773,14 @@ export class AutoShootSystem {
 
   private updateIceWave(time: number, enemies: Enemy[]) {
     const mod = this.player.modifiers;
-    const weaponType = mod.weaponType;
+    const weaponType = mod.activeWeapon;
     const interval = (weaponType === 'frost_storm' ? 1000 : 1500) * (mod.attackSpeedMul || 1.0);
 
     if (time - this.lastIceWaveTime < interval) return;
     this.lastIceWaveTime = time;
 
     const coneRange = weaponType === 'frost_storm' ? 130 : 100;
-    const allEnemies = this.getEnemiesFromPhysics();
+    const allEnemies = enemies;
 
     // Determine facing direction
     const facingAngle = (this.player.moveDir.x !== 0 || this.player.moveDir.y !== 0)
@@ -878,7 +859,7 @@ export class AutoShootSystem {
 
   private updateLaserBeam(time: number, enemies: Enemy[]) {
     const mod = this.player.modifiers;
-    const weaponType = mod.weaponType;
+    const weaponType = mod.activeWeapon;
     const laserRange = 300;
     const isPhoton = weaponType === 'photon_cannon';
     const dps = (mod.laserDps || 15) * (isPhoton ? 1.5 : 1.0);
@@ -901,7 +882,7 @@ export class AutoShootSystem {
     }
 
     // Apply continuous damage
-    const dt = this.scene.game.loop.delta / 1000;
+    const dt = Math.min(this.scene.game.loop.delta / 1000, 0.05);
     const damage = dps * mod.damageMul * dt;
     nearest.takeDamage(damage);
     if (!nearest.isAlive && this.onWeaponKill) {
@@ -994,11 +975,48 @@ export class AutoShootSystem {
     return nearest;
   }
 
-  /** Get all living enemies from the physics world */
+  /** Get a bullet from the pool, recycling the oldest non-boomerang if full */
+  private getBulletFromPool(): Bullet | null {
+    let bullet = this.bullets.get(this.player.x, this.player.y) as Bullet | null;
+    if (!bullet) {
+      const children = this.bullets.getChildren();
+      let best: Bullet | null = null;
+      let bestDist = -1;
+      for (const b of children) {
+        const bul = b as Bullet;
+        if (bul.active && bul.weaponType !== 'boomerang' && bul.weaponType !== 'death_wheel') {
+          const d = distance(bul.x, bul.y, this.player.x, this.player.y);
+          if (d > bestDist) {
+            bestDist = d;
+            best = bul;
+          }
+        }
+      }
+      // Fallback: recycle any active bullet if all are boomerangs
+      if (!best) {
+        for (const b of children) {
+          const bul = b as Bullet;
+          if (bul.active) { best = bul; break; }
+        }
+      }
+      if (best) {
+        best.recycle();
+        bullet = this.bullets.get(this.player.x, this.player.y) as Bullet;
+      }
+    }
+    return bullet;
+  }
+
+  /** Get all living enemies from the physics world (cached per frame) */
   private getEnemiesFromPhysics(): Enemy[] {
-    return this.scene.physics.world.bodies.entries
-      .filter(b => b.gameObject && (b.gameObject as any).isAlive)
-      .map(b => b.gameObject as unknown as Enemy);
+    const frame = this.scene.game.loop.frame;
+    if (frame !== this.lastEnemyCacheFrame) {
+      this.cachedEnemies = this.scene.physics.world.bodies.entries
+        .filter(b => b.gameObject && (b.gameObject as any).isAlive)
+        .map(b => b.gameObject as unknown as Enemy);
+      this.lastEnemyCacheFrame = frame;
+    }
+    return this.cachedEnemies;
   }
 
   /** Apply visual tint to bullet based on weapon type */
@@ -1052,7 +1070,7 @@ export class AutoShootSystem {
         const pushForce = 200 * (1 - dist / radius);
         enemy.setVelocity(nx * pushForce, ny * pushForce);
         // Only damage once per second to avoid rapid HP drain + overlap feedback
-        if (!(enemy as any)._lastRepulseDmg || now - (enemy as any)._lastRepulseDmg > 1000) {
+        if (!(enemy as any)._lastRepulseDmg || now - (enemy as any)._lastRepulseDmg > 800) {
           (enemy as any)._lastRepulseDmg = now;
           enemy.takeDamage(3);
         }
