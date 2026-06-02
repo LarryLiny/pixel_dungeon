@@ -24,6 +24,7 @@ import {
   SKILL_DROP_CHANCE, POTION_DROP_CHANCE, PLAYER_MAX_HP,
 } from '../constants';
 import { distance, randFloat, randInt } from '../utils/helpers';
+import { getFloorTextureKey, getWallTextureKey } from '../utils/tileVariants';
 
 export class GameScene extends Phaser.Scene {
   player!: Player;
@@ -260,17 +261,21 @@ export class GameScene extends Phaser.Scene {
         const x = col * TILE_SIZE + TILE_SIZE / 2;
         const y = row * TILE_SIZE + TILE_SIZE / 2;
 
-        if (row === 0 || row === MAP_ROWS - 1 || col === 0 || col === MAP_COLS - 1) {
+        const isBorder = row === 0 || row === MAP_ROWS - 1 || col === 0 || col === MAP_COLS - 1;
+
+        if (isBorder) {
           // Always wall border
-          const wall = this.walls.create(x, y, 'wall') as Phaser.Physics.Arcade.Sprite;
+          const wall = this.walls.create(x, y, getWallTextureKey(col, row, true)) as Phaser.Physics.Arcade.Sprite;
           wall.setImmovable(true).setDepth(2);
         } else if (grid[row][col] === 1) {
           // Interior wall
-          const wall = this.walls.create(x, y, 'wall') as Phaser.Physics.Arcade.Sprite;
+          const wall = this.walls.create(x, y, getWallTextureKey(col, row, false)) as Phaser.Physics.Arcade.Sprite;
           wall.setImmovable(true).setDepth(2);
         } else {
           // Floor
-          this.add.image(x, y, 'floor').setDepth(0);
+          const floor = this.add.image(x, y, getFloorTextureKey(col, row)).setDepth(0);
+          const angle = ((col * 3 + row * 5) % 4) * 90;
+          floor.setAngle(angle);
         }
       }
     }
@@ -442,7 +447,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   // Shield orbs: orbiting shields that damage and knock back enemies
-  shieldOrbSprites: Phaser.GameObjects.Arc[] = [];
+  shieldOrbSprites: Phaser.GameObjects.Image[] = [];
 
   updateShieldOrbs(time: number, enemies: Enemy[]) {
     const count = this.player.modifiers.shieldOrbs;
@@ -450,7 +455,7 @@ export class GameScene extends Phaser.Scene {
 
     // Sync orb count
     while (this.shieldOrbSprites.length < count) {
-      const orb = this.add.circle(0, 0, 8, 0x4488ff, 0.6).setDepth(9);
+      const orb = this.add.image(0, 0, 'orb_guardian_shield').setScale(1.2).setDepth(9);
       this.shieldOrbSprites.push(orb);
     }
     while (this.shieldOrbSprites.length > count) {
@@ -461,7 +466,11 @@ export class GameScene extends Phaser.Scene {
       const angle = (time / 600) + (i * Math.PI * 2 / Math.max(1, count));
       const ox = this.player.x + Math.cos(angle) * orbitRadius;
       const oy = this.player.y + Math.sin(angle) * orbitRadius;
-      this.shieldOrbSprites[i].setPosition(ox, oy);
+      const pulse = 1.05 + Math.sin(time / 180 + i) * 0.07;
+      this.shieldOrbSprites[i]
+        .setPosition(ox, oy)
+        .setRotation(angle + Math.PI / 2)
+        .setScale(pulse);
 
       // Check collision with enemies
       for (const enemy of enemies) {

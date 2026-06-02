@@ -1,5 +1,11 @@
 import Phaser from 'phaser';
 import { PLAYER_SPEED, PLAYER_MAX_HP, PLAYER_SIZE, MAX_SKILL_SLOTS } from '../constants';
+import {
+  FacingDirection,
+  getDirectionFromVector,
+  getPlayerTextureKey,
+  PlayerMotionState,
+} from '../utils/direction';
 
 export interface SkillSlot {
   id: string;
@@ -106,6 +112,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   moveDir: { x: number; y: number };
   isInvincible: boolean;
   invincibleTimer: number;
+  facing: FacingDirection;
+  motionState: PlayerMotionState;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'player');
@@ -121,6 +129,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     this.moveDir = { x: 0, y: 0 };
     this.isInvincible = false;
     this.invincibleTimer = 0;
+    this.facing = 'down';
+    this.motionState = 'idle';
 
     this.setScale(1.5);
     this.setDepth(10);
@@ -139,6 +149,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   update(time: number, _delta: number) {
     if (!this.isAlive) return;
+
+    this.updateFacingTexture(time);
 
     // Set player velocity
     const speed = PLAYER_SPEED * this.modifiers.speedMul;
@@ -205,6 +217,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   replaceSkill(index: number, newSkillId: string) {
     if (index >= 0 && index < this.skills.length) {
       this.skills[index] = { id: newSkillId, level: 1 };
+    }
+  }
+
+  private updateFacingTexture(time: number) {
+    const isMoving = this.moveDir.x !== 0 || this.moveDir.y !== 0;
+    this.facing = getDirectionFromVector(this.moveDir.x, this.moveDir.y, this.facing);
+    this.motionState = isMoving
+      ? (Math.floor(time / 180) % 2 === 0 ? 'walk1' : 'walk2')
+      : 'idle';
+
+    const key = getPlayerTextureKey(this.facing, this.motionState);
+    if (this.texture.key !== key && this.scene.textures.exists(key)) {
+      this.setTexture(key);
     }
   }
 }

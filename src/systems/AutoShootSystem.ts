@@ -4,6 +4,7 @@ import { Bullet } from '../entities/Bullet';
 import { Enemy } from '../entities/Enemy';
 import { SHOOT_INTERVAL, BULLET_DAMAGE, BULLET_SPEED, BULLET_RANGE } from '../constants';
 import { distance } from '../utils/helpers';
+import { getOrbTextureKey, getOrbVisual, getProjectileVisual } from '../utils/weaponVisuals';
 
 /** Poison cloud data */
 interface PoisonCloud {
@@ -13,7 +14,7 @@ interface PoisonCloud {
   dps: number;
   duration: number;
   startTime: number;
-  graphic: Phaser.GameObjects.Arc;
+  graphic: Phaser.GameObjects.Image;
 }
 
 export class AutoShootSystem {
@@ -274,11 +275,7 @@ export class AutoShootSystem {
     bullet.returning = false;
     bullet.playerRef = null;
 
-    const size = mega ? 2.5 : 1.2;
-    bullet.setScale(size * mod.bulletSizeMul);
-
-    // Weapon-specific texture tint
-    this.applyBulletTint(bullet, weaponType);
+    this.applyProjectileVisual(bullet, weaponType, mod.bulletSizeMul);
 
     bullet.fire(targetX, targetY, damage, angleOffset, speed);
   }
@@ -315,11 +312,7 @@ export class AutoShootSystem {
     bullet.returnSpeed = BULLET_SPEED * mod.bulletSpeedMul * 1.1;
     bullet.playerRef = this.player;
 
-    const size = weaponType === 'death_wheel' ? 2.0 : 1.5;
-    bullet.setScale(size * mod.bulletSizeMul);
-
-    // Green tint for boomerang
-    bullet.setTint(weaponType === 'death_wheel' ? 0x44ff88 : 0x88ff44);
+    this.applyProjectileVisual(bullet, weaponType, mod.bulletSizeMul);
 
     bullet.fire(targetX, targetY, damage, angleOffset, speed);
   }
@@ -354,8 +347,7 @@ export class AutoShootSystem {
     bullet.returning = false;
     bullet.playerRef = null;
 
-    bullet.setScale(1.5 * mod.bulletSizeMul);
-    bullet.setTint(0x44cc22); // green poison
+    this.applyProjectileVisual(bullet, weaponType, mod.bulletSizeMul);
 
     // Store cloud dps for on-hit handling
     (bullet as any)._cloudDps = cloudDps;
@@ -367,10 +359,15 @@ export class AutoShootSystem {
   /** Spawn a poison cloud at position — called from GameScene on bullet hit */
   spawnPoisonCloud(x: number, y: number, dps: number, duration: number) {
     const radius = 30;
-    const graphic = this.scene.add.circle(x, y, radius, 0x44cc22, 0.25).setDepth(7);
+    const graphic = this.scene.add.image(x, y, 'poison_cloud')
+      .setScale((radius * 2) / 40)
+      .setAlpha(0.55)
+      .setDepth(7);
     this.scene.tweens.add({
       targets: graphic,
       alpha: 0,
+      scaleX: graphic.scaleX * 1.2,
+      scaleY: graphic.scaleY * 1.2,
       duration: duration * 1000,
       onComplete: () => { if (graphic.active) graphic.destroy(); },
     });
@@ -436,9 +433,7 @@ export class AutoShootSystem {
     bullet.returning = false;
     bullet.playerRef = null;
 
-    const size = weaponType === 'soul_reaper' ? 3.0 : 2.5;
-    bullet.setScale(size * mod.bulletSizeMul);
-    bullet.setTint(0xcc44ff); // purple
+    this.applyProjectileVisual(bullet, weaponType, mod.bulletSizeMul);
 
     bullet.fire(targetX, targetY, damage, angleOffset, speed);
   }
@@ -454,8 +449,9 @@ export class AutoShootSystem {
 
     // Spawn or remove orbs to match target count
     while (this.orbs.length < targetCount) {
-      const orb = this.scene.physics.add.sprite(this.player.x, this.player.y, 'fireball_orb') as Phaser.Physics.Arcade.Sprite;
-      orb.setScale(1.5).setDepth(9);
+      const orbVisual = getOrbVisual(weaponType);
+      const orb = this.scene.physics.add.sprite(this.player.x, this.player.y, orbVisual.texture) as Phaser.Physics.Arcade.Sprite;
+      orb.setScale(orbVisual.scale).setDepth(9);
       this.orbs.push(orb);
     }
     while (this.orbs.length > targetCount) {
@@ -463,27 +459,20 @@ export class AutoShootSystem {
     }
 
     // Weapon-specific orb behavior
-    const orbitRadius = weaponType === 'sun_storm' ? 70 : 50;
-    const orbitSpeed = weaponType === 'hellfire' ? 1.0 : 0.8;
-    const orbDamage = BULLET_DAMAGE * mod.damageMul * (weaponType === 'sun_storm' ? 0.8 : 0.5);
+    const orbVisual = getOrbVisual(weaponType);
+    const orbitRadius = orbVisual.orbitRadius;
+    const orbitSpeed = orbVisual.orbitSpeed;
+    const orbDamage = BULLET_DAMAGE * mod.damageMul * orbVisual.damageMul;
 
     for (let i = 0; i < this.orbs.length; i++) {
       const orb = this.orbs[i];
-
-      // Tint based on weapon type (all scales are 0.5 multiples for pixel-art crispness)
-      if (weaponType === 'hellfire') {
-        orb.setTint(0xff4400);
-        orb.setScale(1.5);
-      } else if (weaponType === 'sun_storm') {
-        orb.setTint(0xff8800);
-        orb.setScale(2.0);
-      } else if (weaponType === 'tracking_fireball') {
-        orb.setTint(0xff2200);
-        orb.setScale(1.5);
-      } else {
-        orb.setTint(0xff4400);
-        orb.setScale(1.5);
+      const textureKey = getOrbTextureKey(weaponType);
+      if (orb.texture.key !== textureKey) {
+        orb.setTexture(textureKey);
       }
+
+      orb.clearTint();
+      orb.setScale(orbVisual.scale + Math.sin(time / 180 + i) * orbVisual.pulse);
 
       // Orbit position
       const angle = (time / (800 / orbitSpeed)) + (i * Math.PI * 2 / Math.max(1, this.orbs.length));
@@ -508,11 +497,12 @@ export class AutoShootSystem {
       }
 
       orb.setPosition(ox, oy);
+      orb.setRotation(angle * 0.6);
 
       const body = orb.body as Phaser.Physics.Arcade.Body;
       if (body) {
         body.setVelocity(0, 0);
-        body.setSize(12, 12);
+        body.setSize(orbVisual.bodySize, orbVisual.bodySize);
       }
 
       // Damage enemies touching orbs (with per-enemy cooldown to prevent frame-rate-dependent DPS)
@@ -1019,38 +1009,19 @@ export class AutoShootSystem {
     return this.cachedEnemies;
   }
 
-  /** Apply visual tint to bullet based on weapon type */
-  private applyBulletTint(bullet: Bullet, weaponType: string) {
-    switch (weaponType) {
-      case 'shotgun':
-      case 'freeze_shotgun':
-      case 'fragment_bomb':
-        bullet.setTint(0xff8844); // orange
-        break;
-      case 'lightning':
-      case 'thunderstorm':
-      case 'thunder_slash':
-        bullet.setTint(0x88aaff); // blue
-        break;
-      case 'poison_snake':
-      case 'plague_bomb':
-        bullet.setTint(0x88cc44); // green
-        break;
-      case 'death_scythe':
-      case 'soul_reaper':
-        bullet.setTint(0xcc44ff); // purple
-        break;
-      case 'boomerang':
-      case 'death_wheel':
-        bullet.setTint(0x88ff44); // green
-        break;
-      case 'mega_blaster':
-        bullet.setTint(0xffcc44); // gold
-        break;
-      default:
-        bullet.clearTint(); // default yellow
-        break;
+  private applyProjectileVisual(bullet: Bullet, weaponType: string, sizeMul: number) {
+    const visual = getProjectileVisual(weaponType);
+    if (bullet.texture.key !== visual.texture) {
+      bullet.setTexture(visual.texture);
     }
+    bullet.clearTint();
+    bullet.setScale(visual.scale * sizeMul);
+    const body = bullet.body as Phaser.Physics.Arcade.Body;
+    if (body) {
+      body.setSize(visual.bodySize, visual.bodySize);
+    }
+    (bullet as any)._cloudDps = 0;
+    (bullet as any)._weaponType = weaponType;
   }
 
   /** Repulse enemies — called from GameScene */

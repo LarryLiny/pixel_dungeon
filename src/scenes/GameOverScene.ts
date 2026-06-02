@@ -2,6 +2,12 @@ import Phaser from 'phaser';
 import { ALL_ITEMS } from '../data/items';
 import { addScore } from '../utils/leaderboard';
 
+export const GAME_OVER_ACTIONS = [
+  { label: '提交分数', target: 'LeaderboardScene', color: '#ffdd44' },
+  { label: '再来一局', target: 'GameScene', color: '#44ddff' },
+  { label: '返回主菜单', target: 'MenuScene', color: '#aaaacc' },
+] as const;
+
 export class GameOverScene extends Phaser.Scene {
   private nameInput: HTMLInputElement | null = null;
 
@@ -18,15 +24,16 @@ export class GameOverScene extends Phaser.Scene {
     const textSize = Math.max(14, Math.min(18, Math.round(width * 0.023)));
     const smallSize = Math.max(12, Math.min(14, Math.round(width * 0.018)));
     const btnSize = Math.max(16, Math.min(20, Math.round(width * 0.026)));
+    const centerX = width / 2;
 
     // Title
-    this.add.text(width / 2, height * 0.08, '游戏结束', {
+    this.add.text(centerX, height * 0.07, '游戏结束', {
       fontSize: `${titleSize}px`, color: '#ff3344', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5);
 
     // Narrative ending text
     if (data.endingText) {
-      this.add.text(width / 2, height * 0.15, data.endingText, {
+      this.add.text(centerX, height * 0.13, data.endingText, {
         fontSize: `${smallSize}px`, color: '#cc99ff', fontFamily: 'monospace', fontStyle: 'italic',
       }).setOrigin(0.5);
     }
@@ -39,29 +46,44 @@ export class GameOverScene extends Phaser.Scene {
     ];
 
     stats.forEach((text, i) => {
-      this.add.text(width / 2, height * 0.22 + i * (textSize + 8), text, {
+      this.add.text(centerX, height * 0.20 + i * (textSize + 8), text, {
         fontSize: `${textSize}px`, color: '#ddddee', fontFamily: 'monospace',
       }).setOrigin(0.5);
     });
 
+    this.add.text(centerX, height * 0.35, '下一步', {
+      fontSize: `${smallSize}px`,
+      color: '#88aacc',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    this.add.text(centerX, height * 0.39, '提交分数进入排行榜，或直接重新挑战', {
+      fontSize: `${smallSize - 1}px`,
+      color: '#666688',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+
     // Skills obtained
     if (data.skills && data.skills.length > 0) {
-      this.add.text(width / 2, height * 0.44, '获得的技能:', {
+      this.add.text(width * 0.08, height * 0.48, '本局技能', {
         fontSize: `${smallSize}px`, color: '#8888aa', fontFamily: 'monospace',
-      }).setOrigin(0.5);
+      }).setOrigin(0, 0.5);
 
-      data.skills.forEach((skill, i) => {
+      data.skills.slice(0, 8).forEach((skill, i) => {
         const def = ALL_ITEMS[skill.id];
         if (def) {
-          this.add.text(width / 2, height * 0.50 + i * (smallSize + 6), `${def.name} Lv.${skill.level}`, {
+          const col = i % 2;
+          const row = Math.floor(i / 2);
+          this.add.text(width * (0.08 + col * 0.25), height * 0.53 + row * (smallSize + 8), `${def.name} Lv.${skill.level}`, {
             fontSize: `${smallSize}px`, color: def.color, fontFamily: 'monospace',
-          }).setOrigin(0.5);
+          }).setOrigin(0, 0.5);
         }
       });
     }
 
     // Name input
-    this.add.text(width / 2, height * 0.70, '输入你的名字:', {
+    this.add.text(centerX, height * 0.50, '输入名字保存成绩', {
       fontSize: `${smallSize}px`, color: '#aaaacc', fontFamily: 'monospace',
     }).setOrigin(0.5);
 
@@ -85,38 +107,44 @@ export class GameOverScene extends Phaser.Scene {
     document.body.appendChild(this.nameInput);
     if (!isMobile) this.nameInput.focus();
 
-    // Submit button
-    const submitBtn = this.add.text(width / 2, height * 0.84, '[ 提交分数 ]', {
-      fontSize: `${btnSize}px`, color: '#ffdd44', fontFamily: 'monospace',
-      backgroundColor: '#22224488',
-      padding: { x: 16, y: 8 },
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const buttonY = height * 0.82;
+    const gap = Math.min(180, width * 0.25);
+    GAME_OVER_ACTIONS.forEach((action, i) => {
+      const x = centerX + (i - 1) * gap;
+      const button = this.add.text(x, buttonY, `[ ${action.label} ]`, {
+        fontSize: `${i === 0 ? btnSize : btnSize - 2}px`,
+        color: action.color,
+        fontFamily: 'monospace',
+        backgroundColor: i === 0 ? '#332a1188' : '#22224488',
+        padding: { x: 14, y: 8 },
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    submitBtn.on('pointerdown', () => {
-      const name = (this.nameInput?.value?.trim()) || '勇者';
-      addScore({
-        name,
-        score: data.score,
-        kills: data.kills,
-        wave: data.wave,
-        date: new Date().toLocaleDateString('zh-CN'),
+      button.on('pointerover', () => button.setColor('#ffffff'));
+      button.on('pointerout', () => button.setColor(action.color));
+      button.on('pointerdown', () => {
+        if (action.target === 'LeaderboardScene') {
+          this.submitScore(data);
+          return;
+        }
+        this.cleanup();
+        this.scene.start(action.target);
       });
-      this.cleanup();
-      this.scene.start('LeaderboardScene');
-    });
-
-    // Retry button
-    const retryBtn = this.add.text(width / 2, height * 0.93, '[ 再来一局 ]', {
-      fontSize: `${btnSize - 2}px`, color: '#44ddff', fontFamily: 'monospace',
-      padding: { x: 14, y: 6 },
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    retryBtn.on('pointerdown', () => {
-      this.cleanup();
-      this.scene.start('GameScene');
     });
 
     this.events.on('shutdown', () => this.cleanup());
+  }
+
+  private submitScore(data: { score: number; kills: number; wave: number }) {
+    const name = (this.nameInput?.value?.trim()) || '勇者';
+    addScore({
+      name,
+      score: data.score,
+      kills: data.kills,
+      wave: data.wave,
+      date: new Date().toLocaleDateString('zh-CN'),
+    });
+    this.cleanup();
+    this.scene.start('LeaderboardScene');
   }
 
   private cleanup() {

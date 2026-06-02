@@ -1,4 +1,10 @@
 import Phaser from 'phaser';
+import {
+  FacingDirection,
+  getDirectionFromVector,
+  getEnemyTextureKey,
+  PlayerMotionState,
+} from '../utils/direction';
 
 export interface EnemyData {
   key: string;
@@ -38,6 +44,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
   lastY: number = 0;
   wallAvoidAngle: number = 0;
   avoidingWall: boolean = false;
+  facing: FacingDirection = 'down';
+  motionState: PlayerMotionState = 'idle';
 
   constructor(scene: Phaser.Scene, x: number, y: number, enemyData: EnemyData) {
     super(scene, x, y, enemyData.key);
@@ -185,40 +193,47 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
       const ax = Math.cos(this.wallAvoidAngle) * speed;
       const ay = Math.sin(this.wallAvoidAngle) * speed;
       this.setVelocity(ax, ay);
+      this.updateFacingTexture(ax, ay, time);
       return;
     }
 
+    let vx = 0;
+    let vy = 0;
+
     switch (this.enemyData.behavior) {
       case 'chase':
-        this.setVelocity(nx * speed, ny * speed);
+        vx = nx * speed;
+        vy = ny * speed;
         break;
       case 'zigzag':
-        this.setVelocity(
-          nx * speed + Math.sin(time / 300 + this.zigzagOffset) * speed * 0.5,
-          ny * speed + Math.cos(time / 300 + this.zigzagOffset) * speed * 0.5
-        );
+        vx = nx * speed + Math.sin(time / 300 + this.zigzagOffset) * speed * 0.5;
+        vy = ny * speed + Math.cos(time / 300 + this.zigzagOffset) * speed * 0.5;
         break;
       case 'dash':
         if (time - this.lastDashTime > 3000) {
-          this.setVelocity(nx * speed * 3, ny * speed * 3);
+          vx = nx * speed * 3;
+          vy = ny * speed * 3;
           this.lastDashTime = time;
         } else {
-          this.setVelocity(nx * speed * 0.5, ny * speed * 0.5);
+          vx = nx * speed * 0.5;
+          vy = ny * speed * 0.5;
         }
         break;
       case 'tank':
-        this.setVelocity(nx * speed, ny * speed);
+        vx = nx * speed;
+        vy = ny * speed;
         break;
       case 'ranged':
         if (len < 150) {
-          this.setVelocity(-nx * speed, -ny * speed);
+          vx = -nx * speed;
+          vy = -ny * speed;
         } else if (len > 250) {
-          this.setVelocity(nx * speed, ny * speed);
+          vx = nx * speed;
+          vy = ny * speed;
         } else {
           // Strafe instead of standing still
-          const perpX = -ny * speed * 0.6;
-          const perpY = nx * speed * 0.6;
-          this.setVelocity(perpX, perpY);
+          vx = -ny * speed * 0.6;
+          vy = nx * speed * 0.6;
         }
         break;
       case 'phase':
@@ -228,19 +243,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
           this.phaseTimer = 0;
           this.setAlpha(this.phaseVisible ? 1 : 0.3);
         }
-        this.setVelocity(nx * speed, ny * speed);
+        vx = nx * speed;
+        vy = ny * speed;
         break;
       case 'boss':
         const angle = time / 1000;
-        this.setVelocity(
-          nx * speed + Math.cos(angle) * speed * 0.7,
-          ny * speed + Math.sin(angle) * speed * 0.7
-        );
+        vx = nx * speed + Math.cos(angle) * speed * 0.7;
+        vy = ny * speed + Math.sin(angle) * speed * 0.7;
         break;
     }
 
-    if (dx < 0) this.setFlipX(true);
-    else this.setFlipX(false);
+    this.setVelocity(vx, vy);
+    this.updateFacingTexture(vx, vy, time);
   }
 
   die() {
@@ -251,6 +265,20 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (body) {
       body.setVelocity(0, 0);
       body.stop();
+    }
+  }
+
+  private updateFacingTexture(vx: number, vy: number, time: number) {
+    this.facing = getDirectionFromVector(vx, vy, this.facing);
+    const moving = vx !== 0 || vy !== 0;
+    this.motionState = moving
+      ? (Math.floor(time / 220) % 2 === 0 ? 'walk1' : 'walk2')
+      : 'idle';
+
+    const key = getEnemyTextureKey(this.enemyData.key, this.facing, this.motionState);
+    if (this.texture.key !== key && this.scene.textures.exists(key)) {
+      this.setTexture(key);
+      this.setFlipX(false);
     }
   }
 }

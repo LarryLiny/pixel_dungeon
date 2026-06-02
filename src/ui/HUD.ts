@@ -2,19 +2,9 @@ import Phaser from 'phaser';
 import { Player } from '../entities/Player';
 import { ScoreSystem } from '../systems/ScoreSystem';
 import { WaveSystem } from '../systems/WaveSystem';
-import { ALL_ITEMS, ItemCategory } from '../data/items';
+import { ALL_ITEMS } from '../data/items';
 import { FUSION_RECIPES } from '../data/fusionRecipes';
-
-const CATEGORY_BG: Record<ItemCategory, number> = {
-  weapon: 0x663311,
-  augment: 0x113355,
-  defense: 0x115533,
-};
-const CATEGORY_BORDER: Record<ItemCategory, number> = {
-  weapon: 0xff8844,
-  augment: 0x44eeff,
-  defense: 0x44ff88,
-};
+import { getItemVisualType } from '../utils/itemVisuals';
 
 /** Map item id → icon texture key */
 const ITEM_ICON_MAP: Record<string, string> = {
@@ -107,6 +97,7 @@ export class HUD {
     bg: Phaser.GameObjects.Rectangle;
     catBg: Phaser.GameObjects.Rectangle;
     image: Phaser.GameObjects.Image;
+    typeTag: Phaser.GameObjects.Text;
     level: Phaser.GameObjects.Text;
   }[];
 
@@ -191,13 +182,22 @@ export class HUD {
     const image = this.scene.add.image(x + slotSize / 2, y + slotSize / 2, 'icon_basic_shot')
       .setScale(iconScale).setDepth(52).setScrollFactor(0).setVisible(false);
 
+    const typeTag = this.scene.add.text(x + 3, y + 3, '', {
+      fontSize: `${Math.max(9, Math.round(10 * scale))}px`,
+      color: '#ffffff',
+      fontFamily: 'monospace',
+      fontStyle: 'bold',
+      backgroundColor: '#000000cc',
+      padding: { x: 3, y: 1 },
+    }).setOrigin(0, 0).setDepth(54).setScrollFactor(0).setVisible(false);
+
     const level = this.scene.add.text(x + slotSize - 3, y + slotSize - 3, '', {
       fontSize: `${Math.max(9, Math.round(10 * scale))}px`,
       color: '#ffdd44', fontFamily: 'monospace', fontStyle: 'bold',
       backgroundColor: '#000000cc', padding: { x: 3, y: 1 },
     }).setOrigin(1, 1).setDepth(53).setScrollFactor(0);
 
-    this.skillIcons.push({ bg, catBg, image, level });
+    this.skillIcons.push({ bg, catBg, image, typeTag, level });
   }
 
   // Cached values to skip redundant text updates
@@ -264,10 +264,14 @@ export class HUD {
         const skill = player.skills[i];
         const def = ALL_ITEMS[skill.id];
         if (def) {
-          const cat = def.category;
+          const visual = getItemVisualType(skill.id, def.category);
           slot.catBg.setVisible(true);
-          slot.catBg.setFillStyle(CATEGORY_BG[cat]);
-          slot.bg.setStrokeStyle(2, CATEGORY_BORDER[cat]);
+          slot.catBg.setFillStyle(visual.bgColor, 0.9);
+          slot.bg.setStrokeStyle(3, visual.borderColor);
+          slot.typeTag
+            .setText(visual.shortLabel)
+            .setColor(`#${visual.color.toString(16).padStart(6, '0')}`)
+            .setVisible(true);
 
           // Show graphical icon
           const iconKey = getItemIconKey(skill.id);
@@ -283,6 +287,7 @@ export class HUD {
       } else {
         slot.catBg.setVisible(false);
         slot.image.setVisible(false);
+        slot.typeTag.setVisible(false);
         slot.level.setText('');
         slot.bg.setStrokeStyle(2, 0x444466);
       }
@@ -302,6 +307,7 @@ export class HUD {
       s.bg.destroy();
       s.catBg.destroy();
       s.image.destroy();
+      s.typeTag.destroy();
       s.level.destroy();
     });
   }

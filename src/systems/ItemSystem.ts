@@ -2,6 +2,7 @@ import { Player, defaultModifiers } from '../entities/Player';
 import { MAX_SKILL_SLOTS } from '../constants';
 import { getItemValue, ItemDef, ALL_ITEMS, ItemCategory } from '../data/items';
 import { FUSION_RECIPES } from '../data/fusionRecipes';
+import { getItemVisualType } from '../utils/itemVisuals';
 
 export interface ItemSlot {
   id: string;
@@ -273,6 +274,7 @@ export class ItemSystem {
   pickupItem(itemId: string): { success: boolean; message: string; level: number } {
     const def = ALL_ITEMS[itemId];
     if (!def) return { success: false, message: '未知道具', level: 0 };
+    const visual = getItemVisualType(itemId, def.category);
 
     // Weapons: split into active and passive slots
     if (def.category === 'weapon') {
@@ -289,9 +291,9 @@ export class ItemSystem {
         if (existingSame.level < 9) {
           existingSame.level++;
           this.recalculate();
-          return { success: true, message: `${def.name} 升级到 Lv.${existingSame.level}`, level: existingSame.level };
+          return { success: true, message: `${visual.label}: ${def.name} 升级到 Lv.${existingSame.level}`, level: existingSame.level };
         }
-        return { success: false, message: `${def.name} 已满级`, level: 9 };
+        return { success: false, message: `${visual.label}: ${def.name} 已满级`, level: 9 };
       }
 
       // Different weapon in same slot → replace (with fusion protection)
@@ -304,7 +306,7 @@ export class ItemSystem {
         const idx = this.player.skills.indexOf(existingInSlot);
         this.player.skills[idx] = { id: itemId, level: 1 };
         this.recalculate();
-        return { success: true, message: `${newIsPassive ? '被动' : '主动'}武器更换: ${def.name}`, level: 1 };
+        return { success: true, message: `${visual.label}更换: ${def.name}`, level: 1 };
       }
 
       // No existing weapon in slot → add new
@@ -312,7 +314,7 @@ export class ItemSystem {
       if (this.player.skills.length < maxSlots) {
         this.player.skills.push({ id: itemId, level: 1 });
         this.recalculate();
-        return { success: true, message: `获得${newIsPassive ? '被动' : '主动'}武器: ${def.name} Lv.1`, level: 1 };
+        return { success: true, message: `${visual.messagePrefix}: ${def.name} Lv.1`, level: 1 };
       }
 
       return { success: false, message: '道具栏已满', level: 0 };
@@ -324,16 +326,16 @@ export class ItemSystem {
       if (existing.level < 9) {
         existing.level++;
         this.recalculate();
-        return { success: true, message: `${def.name} 升级到 Lv.${existing.level}`, level: existing.level };
+        return { success: true, message: `${visual.label}: ${def.name} 升级到 Lv.${existing.level}`, level: existing.level };
       }
-      return { success: false, message: `${def.name} 已满级`, level: 9 };
+      return { success: false, message: `${visual.label}: ${def.name} 已满级`, level: 9 };
     }
 
     const maxSlots = MAX_SKILL_SLOTS + this.player.modifiers.fusionSlotBonus;
     if (this.player.skills.length < maxSlots) {
       this.player.skills.push({ id: itemId, level: 1 });
       this.recalculate();
-      return { success: true, message: `获得: ${def.name} Lv.1`, level: 1 };
+      return { success: true, message: `${visual.messagePrefix}: ${def.name} Lv.1`, level: 1 };
     }
 
     return { success: false, message: '道具栏已满', level: 0 };

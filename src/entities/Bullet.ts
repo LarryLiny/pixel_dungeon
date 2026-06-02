@@ -1,19 +1,6 @@
 import Phaser from 'phaser';
-import { BULLET_SPEED, BULLET_SIZE, BULLET_DAMAGE } from '../constants';
-
-/** Map weapon type to bullet texture key */
-const WEAPON_BULLET_TEXTURE: Record<string, string> = {
-  shotgun: 'bullet_shotgun',
-  freeze_shotgun: 'bullet_freeze',
-  boomerang: 'bullet_boomerang',
-  death_wheel: 'bullet_boomerang',
-  poison_snake: 'bullet_poison',
-  plague_bomb: 'bullet_poison',
-  death_scythe: 'bullet_scythe',
-  soul_reaper: 'bullet_soul',
-  mega_blaster: 'bullet_mega',
-  fragment_bomb: 'bullet_fragment',
-};
+import { BULLET_SPEED, BULLET_DAMAGE } from '../constants';
+import { getProjectileTextureKey, getProjectileVisual } from '../utils/weaponVisuals';
 
 export class Bullet extends Phaser.Physics.Arcade.Sprite {
   damage: number;
@@ -69,7 +56,8 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.returning = false;
 
     // Set weapon-specific bullet texture
-    const tex = WEAPON_BULLET_TEXTURE[this.weaponType] || 'bullet';
+    const visual = getProjectileVisual(this.weaponType);
+    const tex = getProjectileTextureKey(this.weaponType);
     if (this.texture.key !== tex) this.setTexture(tex);
 
     const dx = targetX - this.x;
@@ -85,7 +73,7 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
     // Ensure body is ready before setting velocity
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (body) {
-      body.setSize(BULLET_SIZE, BULLET_SIZE);
+      body.setSize(visual.bodySize, visual.bodySize);
       body.setVelocity(nx * speed, ny * speed);
       body.enable = true;
     }

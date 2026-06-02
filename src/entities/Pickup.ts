@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PICKUP_SIZE } from '../constants';
 import { ItemCategory, ItemRarity } from '../data/items';
 import { FRAGMENT_DEFS } from '../data/fragments';
+import { getItemVisualType } from '../utils/itemVisuals';
 
 export type PickupType = 'item' | 'potion' | 'fragment';
 
@@ -78,6 +79,8 @@ export class Pickup extends Phaser.Physics.Arcade.Sprite {
   healAmount: number;
   bobOffset: number;
   glowRing: Phaser.GameObjects.Arc | null;
+  typeFrame: Phaser.GameObjects.Rectangle | null;
+  typeBadge: Phaser.GameObjects.Text | null;
   fragmentRarity: ItemRarity | null;
 
   constructor(
@@ -106,6 +109,8 @@ export class Pickup extends Phaser.Physics.Arcade.Sprite {
     this.healAmount = healAmount;
     this.bobOffset = Math.random() * Math.PI * 2;
     this.glowRing = null;
+    this.typeFrame = null;
+    this.typeBadge = null;
     this.fragmentRarity = fragmentRarity;
 
     this.setScale(1.5);
@@ -119,15 +124,53 @@ export class Pickup extends Phaser.Physics.Arcade.Sprite {
       const hexStr = FRAGMENT_DEFS[fragmentRarity].color;
       glowColor = parseInt(hexStr.replace('#', ''), 16);
     } else {
-      glowColor = CATEGORY_COLORS[itemCategory || 'weapon'] || 0xffdd44;
+      const visual = itemId ? getItemVisualType(itemId, itemCategory || undefined) : null;
+      glowColor = visual?.borderColor || CATEGORY_COLORS[itemCategory || 'weapon'] || 0xffdd44;
     }
     this.glowRing = scene.add.circle(x, y, 14, glowColor, 0.25).setDepth(5);
+    if (type === 'item' && itemId) {
+      const visual = getItemVisualType(itemId, itemCategory || undefined);
+      this.typeFrame = scene.add.rectangle(x, y, PICKUP_SIZE * 2 + 2, PICKUP_SIZE * 2 + 2, visual.bgColor, 0.35)
+        .setStrokeStyle(2, visual.borderColor, 0.95)
+        .setDepth(5.5);
+      this.typeBadge = scene.add.text(x + 8, y - 15, visual.shortLabel, {
+        fontSize: '10px',
+        color: `#${visual.color.toString(16).padStart(6, '0')}`,
+        fontFamily: 'monospace',
+        fontStyle: 'bold',
+        backgroundColor: '#000000cc',
+        padding: { x: 2, y: 0 },
+      }).setOrigin(0.5).setDepth(7);
+    }
+  }
+
+  update(time: number) {
+    const bob = Math.sin(time / 260 + this.bobOffset) * 2;
+    this.setDisplayOrigin(this.width / 2, this.height / 2 + bob / Math.max(this.scaleY, 1));
+    if (this.glowRing) {
+      this.glowRing.setPosition(this.x, this.y + bob);
+      this.glowRing.setAlpha(0.18 + Math.sin(time / 220 + this.bobOffset) * 0.06);
+    }
+    if (this.typeFrame) {
+      this.typeFrame.setPosition(this.x, this.y + bob);
+    }
+    if (this.typeBadge) {
+      this.typeBadge.setPosition(this.x + 9, this.y - 15 + bob);
+    }
   }
 
   destroy(fromScene?: boolean) {
     if (this.glowRing) {
       this.glowRing.destroy();
       this.glowRing = null;
+    }
+    if (this.typeFrame) {
+      this.typeFrame.destroy();
+      this.typeFrame = null;
+    }
+    if (this.typeBadge) {
+      this.typeBadge.destroy();
+      this.typeBadge = null;
     }
     super.destroy(fromScene);
   }

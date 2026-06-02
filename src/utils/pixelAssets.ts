@@ -17,55 +17,176 @@ function generateTexture(
   scene.textures.addCanvas(key, canvas);
 }
 
+type PlayerFacing = 'down' | 'down_right' | 'right' | 'up_right' | 'up' | 'up_left' | 'left' | 'down_left';
+type PlayerFrame = 'idle' | 'walk1' | 'walk2';
+
+function drawPlayerFrame(ctx: CanvasRenderingContext2D, facing: PlayerFacing, frame: PlayerFrame) {
+  const side = facing.includes('right') ? 1 : facing.includes('left') ? -1 : 0;
+  const lookingUp = facing.startsWith('up');
+  const lookingDown = facing.startsWith('down');
+  const step = frame === 'idle' ? 0 : frame === 'walk1' ? -1 : 1;
+
+  // Shadow and boots
+  ctx.fillStyle = '#172038';
+  ctx.fillRect(4, 14, 8, 1);
+  ctx.fillStyle = '#8b6914';
+  ctx.fillRect(4 + Math.max(0, step), 13, 3, 3);
+  ctx.fillRect(9 + Math.min(0, step), 13, 3, 3);
+
+  // Cape/back marker for upward views
+  if (lookingUp) {
+    ctx.fillStyle = '#263b7c';
+    ctx.fillRect(5, 3, 6, 8);
+    ctx.fillStyle = '#d7e8ff';
+    ctx.fillRect(5, 2, 2, 1);
+  }
+
+  // Armor body
+  ctx.fillStyle = '#4a7adb';
+  ctx.fillRect(4, 4, 8, 8);
+  ctx.fillStyle = '#2f4d9a';
+  ctx.fillRect(4, 10, 8, 2);
+  ctx.fillStyle = '#86a9ff';
+  ctx.fillRect(side >= 0 ? 5 : 9, 4, 2, 6);
+
+  // Shoulders and small side weapon cue
+  ctx.fillStyle = '#31518f';
+  ctx.fillRect(3, 5, 2, 4);
+  ctx.fillRect(11, 5, 2, 4);
+  ctx.fillStyle = '#c8ced8';
+  ctx.fillRect(side >= 0 ? 12 : 2, 6, 1, 5);
+  ctx.fillStyle = '#785124';
+  ctx.fillRect(side >= 0 ? 13 : 1, 7, 1, 3);
+
+  // Head and helmet direction
+  ctx.fillStyle = lookingUp ? '#3a5a9d' : '#f5c8a8';
+  ctx.fillRect(5, 1, 6, 5);
+  ctx.fillStyle = '#3a5a9d';
+  ctx.fillRect(4, 0, 8, 2);
+  ctx.fillRect(4, 2, 1, 3);
+  ctx.fillRect(11, 2, 1, 3);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(5, 0, 2, 1);
+
+  if (!lookingUp) {
+    ctx.fillStyle = '#222233';
+    if (side > 0) {
+      ctx.fillRect(8, 3, 2, 2);
+      ctx.fillRect(11, 3, 1, 2);
+    } else if (side < 0) {
+      ctx.fillRect(4, 3, 1, 2);
+      ctx.fillRect(6, 3, 2, 2);
+    } else if (lookingDown) {
+      ctx.fillRect(6, 3, 2, 2);
+      ctx.fillRect(10, 3, 2, 2);
+    } else {
+      ctx.fillRect(6, 2, 1, 1);
+      ctx.fillRect(10, 2, 1, 1);
+    }
+  }
+
+  // Readability outline accents
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(3, 9, 1, 3);
+  ctx.fillRect(12, 9, 1, 3);
+}
+
 // --- Player ---
 export function createPlayerTexture(scene: Phaser.Scene) {
+  const facings: PlayerFacing[] = ['down', 'down_right', 'right', 'up_right', 'up', 'up_left', 'left', 'down_left'];
+  const frames: PlayerFrame[] = ['idle', 'walk1', 'walk2'];
+  for (const facing of facings) {
+    for (const frame of frames) {
+      generateTexture(scene, `player_${facing}_${frame}`, 16, 16, (ctx) => {
+        drawPlayerFrame(ctx, facing, frame);
+      });
+    }
+  }
   generateTexture(scene, 'player', 16, 16, (ctx) => {
-    // Body (blue armor)
-    ctx.fillStyle = '#4a7adb';
-    ctx.fillRect(4, 2, 8, 10);
-    // Head
-    ctx.fillStyle = '#f5c8a8';
-    ctx.fillRect(5, 0, 6, 4);
-    // Eyes
-    ctx.fillStyle = '#222';
-    ctx.fillRect(6, 1, 2, 2);
-    ctx.fillRect(10, 1, 2, 2);
-    // Legs
-    ctx.fillStyle = '#3a5a9d';
-    ctx.fillRect(4, 12, 3, 4);
-    ctx.fillRect(9, 12, 3, 4);
-    // Boots
-    ctx.fillStyle = '#8b6914';
-    ctx.fillRect(4, 14, 3, 2);
-    ctx.fillRect(9, 14, 3, 2);
+    drawPlayerFrame(ctx, 'down', 'idle');
   });
 }
 
 // --- Dungeon floor tile ---
 export function createFloorTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'floor', 32, 32, (ctx) => {
+  const drawBaseFloor = (ctx: CanvasRenderingContext2D) => {
     ctx.fillStyle = '#2d2d44';
     ctx.fillRect(0, 0, 32, 32);
-    // Random stone pattern
     ctx.fillStyle = '#33334d';
     ctx.fillRect(0, 0, 15, 15);
     ctx.fillRect(17, 0, 15, 15);
     ctx.fillRect(0, 17, 15, 15);
     ctx.fillRect(17, 17, 15, 15);
-    // Cracks
+    ctx.fillStyle = '#252540';
+    ctx.fillRect(15, 0, 2, 32);
+    ctx.fillRect(0, 15, 32, 2);
+  };
+
+  generateTexture(scene, 'floor_base', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
+    ctx.fillStyle = '#39405d';
+    ctx.fillRect(3, 3, 4, 1);
+    ctx.fillRect(21, 20, 5, 1);
+  });
+  generateTexture(scene, 'floor_cracked', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
     ctx.fillStyle = '#252540';
     ctx.fillRect(7, 15, 1, 2);
     ctx.fillRect(15, 7, 2, 1);
     ctx.fillRect(24, 23, 1, 1);
+    ctx.fillRect(8, 17, 7, 1);
+    ctx.fillRect(14, 18, 1, 5);
+    ctx.fillRect(20, 8, 1, 7);
+  });
+  generateTexture(scene, 'floor_dark', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
+    ctx.fillStyle = '#22263a';
+    ctx.fillRect(0, 0, 15, 15);
+    ctx.fillRect(17, 17, 15, 15);
+    ctx.fillStyle = '#1b2033';
+    ctx.fillRect(2, 2, 8, 2);
+    ctx.fillRect(20, 25, 8, 2);
+  });
+  generateTexture(scene, 'floor_chipped', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
+    ctx.fillStyle = '#1f2436';
+    ctx.fillRect(0, 0, 5, 3);
+    ctx.fillRect(28, 13, 4, 4);
+    ctx.fillRect(13, 28, 7, 4);
+    ctx.fillStyle = '#414968';
+    ctx.fillRect(4, 2, 2, 1);
+    ctx.fillRect(23, 27, 3, 1);
+  });
+  generateTexture(scene, 'floor_moss', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
+    ctx.fillStyle = '#274234';
+    ctx.fillRect(0, 26, 11, 4);
+    ctx.fillRect(22, 2, 7, 3);
+    ctx.fillStyle = '#3d6a44';
+    ctx.fillRect(2, 25, 3, 1);
+    ctx.fillRect(24, 5, 4, 1);
+  });
+  generateTexture(scene, 'floor_rubble', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
+    ctx.fillStyle = '#55506a';
+    ctx.fillRect(5, 22, 4, 3);
+    ctx.fillRect(22, 6, 3, 3);
+    ctx.fillRect(25, 10, 5, 2);
+    ctx.fillStyle = '#1d2233';
+    ctx.fillRect(9, 25, 2, 1);
+    ctx.fillRect(20, 9, 1, 2);
+  });
+  generateTexture(scene, 'floor', 32, 32, (ctx) => {
+    drawBaseFloor(ctx);
   });
 }
 
 // --- Wall tile ---
 export function createWallTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'wall', 32, 32, (ctx) => {
+  const drawBaseWall = (ctx: CanvasRenderingContext2D, base = '#4a3a2a') => {
     ctx.fillStyle = '#4a3a2a';
+    ctx.fillStyle = base;
     ctx.fillRect(0, 0, 32, 32);
-    // Brick pattern
     ctx.fillStyle = '#5a4a3a';
     ctx.fillRect(1, 1, 14, 6);
     ctx.fillRect(17, 1, 14, 6);
@@ -81,263 +202,463 @@ export function createWallTexture(scene: Phaser.Scene) {
     ctx.fillRect(0, 15, 32, 2);
     ctx.fillRect(0, 23, 32, 2);
     ctx.fillRect(15, 0, 2, 32);
+  };
+
+  generateTexture(scene, 'wall_base', 32, 32, (ctx) => {
+    drawBaseWall(ctx);
+    ctx.fillStyle = '#6a5848';
+    ctx.fillRect(2, 1, 7, 1);
+    ctx.fillRect(18, 17, 6, 1);
+  });
+  generateTexture(scene, 'wall_cracked', 32, 32, (ctx) => {
+    drawBaseWall(ctx);
+    ctx.fillStyle = '#2c2118';
+    ctx.fillRect(8, 4, 1, 8);
+    ctx.fillRect(9, 11, 5, 1);
+    ctx.fillRect(21, 18, 1, 7);
+    ctx.fillRect(17, 21, 4, 1);
+  });
+  generateTexture(scene, 'wall_dark', 32, 32, (ctx) => {
+    drawBaseWall(ctx, '#3e3228');
+    ctx.fillStyle = '#2a2119';
+    ctx.fillRect(0, 24, 32, 8);
+    ctx.fillRect(0, 0, 3, 32);
+  });
+  generateTexture(scene, 'wall_chipped', 32, 32, (ctx) => {
+    drawBaseWall(ctx);
+    ctx.fillStyle = '#2c2118';
+    ctx.fillRect(1, 1, 5, 4);
+    ctx.fillRect(27, 18, 4, 5);
+    ctx.fillStyle = '#6a5848';
+    ctx.fillRect(6, 2, 3, 1);
+    ctx.fillRect(24, 19, 3, 1);
+  });
+  generateTexture(scene, 'wall_border', 32, 32, (ctx) => {
+    drawBaseWall(ctx, '#3a2f28');
+    ctx.fillStyle = '#211a16';
+    ctx.fillRect(0, 0, 32, 4);
+    ctx.fillRect(0, 28, 32, 4);
+    ctx.fillRect(0, 0, 4, 32);
+    ctx.fillRect(28, 0, 4, 32);
+  });
+  generateTexture(scene, 'wall', 32, 32, (ctx) => {
+    drawBaseWall(ctx);
   });
 }
 
 // --- Enemies ---
-export function createSlimeTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'slime', 16, 16, (ctx) => {
-    ctx.fillStyle = '#44cc44';
-    ctx.fillRect(3, 6, 10, 8);
-    ctx.fillRect(2, 8, 12, 4);
-    // Eyes
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(5, 7, 2, 3);
-    ctx.fillRect(9, 7, 2, 3);
-    ctx.fillStyle = '#111';
-    ctx.fillRect(6, 8, 1, 2);
-    ctx.fillRect(10, 8, 1, 2);
+type EnemyKey = 'slime' | 'bat' | 'goblin' | 'skeleton' | 'orc' | 'ghost' | 'demon';
+
+function drawEyes(ctx: CanvasRenderingContext2D, facing: PlayerFacing, color: string, y: number) {
+  const side = facing.includes('right') ? 1 : facing.includes('left') ? -1 : 0;
+  if (facing.startsWith('up')) return;
+  ctx.fillStyle = color;
+  if (side > 0) {
+    ctx.fillRect(8, y, 2, 2);
+    ctx.fillRect(11, y, 1, 2);
+  } else if (side < 0) {
+    ctx.fillRect(4, y, 1, 2);
+    ctx.fillRect(6, y, 2, 2);
+  } else {
+    ctx.fillRect(5, y, 2, 2);
+    ctx.fillRect(9, y, 2, 2);
+  }
+}
+
+function drawEnemyFrame(ctx: CanvasRenderingContext2D, enemy: EnemyKey, facing: PlayerFacing, frame: PlayerFrame) {
+  const side = facing.includes('right') ? 1 : facing.includes('left') ? -1 : 0;
+  const lookingUp = facing.startsWith('up');
+  const bob = frame === 'walk1' ? -1 : frame === 'walk2' ? 1 : 0;
+
+  switch (enemy) {
+    case 'slime': {
+      ctx.fillStyle = '#235b2d';
+      ctx.fillRect(4, 13, 9, 2);
+      ctx.fillStyle = '#44cc44';
+      ctx.fillRect(3 + (side > 0 ? 1 : 0), 6 + bob, 10, 8);
+      ctx.fillRect(2 + (side < 0 ? -1 : 0), 8 + bob, 12, 4);
+      ctx.fillStyle = '#79ee75';
+      ctx.fillRect(5 + side, 6 + bob, 3, 1);
+      drawEyes(ctx, facing, '#ffffff', 8 + bob);
+      ctx.fillStyle = '#111';
+      if (!lookingUp) {
+        ctx.fillRect(6 + side, 9 + bob, 1, 1);
+        ctx.fillRect(10 + side, 9 + bob, 1, 1);
+      }
+      break;
+    }
+    case 'bat': {
+      const wingY = 4 + (frame === 'walk1' ? -1 : frame === 'walk2' ? 1 : 0);
+      ctx.fillStyle = '#5e2f78';
+      ctx.fillRect(0, wingY, 5, 4);
+      ctx.fillRect(11, wingY, 5, 4);
+      ctx.fillRect(2, wingY + 4, 3, 3);
+      ctx.fillRect(11, wingY + 4, 3, 3);
+      ctx.fillStyle = '#8844aa';
+      ctx.fillRect(4 + side, 3, 8, 8);
+      ctx.fillStyle = '#aa66cc';
+      ctx.fillRect(6 + side, 2, 4, 2);
+      drawEyes(ctx, facing, '#ff4444', lookingUp ? 3 : 5);
+      ctx.fillStyle = '#fff';
+      if (!lookingUp) {
+        ctx.fillRect(6 + side, 9, 1, 2);
+        ctx.fillRect(9 + side, 9, 1, 2);
+      }
+      break;
+    }
+    case 'goblin': {
+      ctx.fillStyle = '#35591d';
+      ctx.fillRect(4, 13, 8, 2);
+      ctx.fillStyle = '#66aa33';
+      ctx.fillRect(4, 5 + bob, 8, 7);
+      ctx.fillRect(5 + side, 1 + bob, 6, 5);
+      ctx.fillRect(side >= 0 ? 11 : 3, 2 + bob, 2, 2);
+      ctx.fillRect(side >= 0 ? 3 : 11, 3 + bob, 2, 2);
+      drawEyes(ctx, facing, '#ffff33', 3 + bob);
+      ctx.fillStyle = '#8b5a2b';
+      ctx.fillRect(side >= 0 ? 12 : 2, 7 + bob, 2, 5);
+      ctx.fillStyle = '#558822';
+      ctx.fillRect(4, 12, 3, 4);
+      ctx.fillRect(9, 12, 3, 4);
+      break;
+    }
+    case 'skeleton': {
+      ctx.fillStyle = '#696554';
+      ctx.fillRect(5, 14, 6, 1);
+      ctx.fillStyle = '#ddd8c8';
+      ctx.fillRect(4 + side, 1 + bob, 8, 6);
+      ctx.fillStyle = '#ccc7b7';
+      ctx.fillRect(5, 7 + bob, 6, 5);
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(6, 8 + bob, 1, 4);
+      ctx.fillRect(9, 8 + bob, 1, 4);
+      drawEyes(ctx, facing, '#222222', 3 + bob);
+      ctx.fillStyle = '#b8b09c';
+      ctx.fillRect(4, 12, 2, 4);
+      ctx.fillRect(10, 12, 2, 4);
+      ctx.fillStyle = '#ddd8c8';
+      ctx.fillRect(side >= 0 ? 11 : 3, 8 + bob, 2, 1);
+      ctx.fillRect(side >= 0 ? 12 : 2, 9 + bob, 1, 3);
+      break;
+    }
+    case 'orc': {
+      ctx.fillStyle = '#243616';
+      ctx.fillRect(3, 14, 10, 2);
+      ctx.fillStyle = '#557733';
+      ctx.fillRect(2, 5 + bob, 12, 8);
+      ctx.fillRect(4 + side, 1 + bob, 8, 6);
+      ctx.fillStyle = '#6c8f42';
+      ctx.fillRect(3, 5 + bob, 4, 2);
+      drawEyes(ctx, facing, '#ff3333', 3 + bob);
+      ctx.fillStyle = '#ffffff';
+      if (!lookingUp) {
+        ctx.fillRect(5 + side, 6 + bob, 1, 2);
+        ctx.fillRect(10 + side, 6 + bob, 1, 2);
+      }
+      ctx.fillStyle = '#446622';
+      ctx.fillRect(3, 12, 4, 4);
+      ctx.fillRect(9, 12, 4, 4);
+      break;
+    }
+    case 'ghost': {
+      ctx.fillStyle = '#5a6688';
+      ctx.fillRect(4, 14, 8, 1);
+      ctx.fillStyle = lookingUp ? '#8ca0c8' : '#aab8dd';
+      ctx.fillRect(3 + side, 1 + bob, 10, 8);
+      ctx.fillRect(2, 8 + bob, 12, 6);
+      ctx.fillRect(3, 14 + Math.max(0, bob), 2, 2);
+      ctx.fillRect(7 + side, 14, 2, 2);
+      ctx.fillRect(11, 14 + Math.max(0, -bob), 2, 2);
+      drawEyes(ctx, facing, '#334455', 4 + bob);
+      ctx.fillStyle = '#d6e2ff';
+      ctx.fillRect(5 + side, 3 + bob, 1, 1);
+      break;
+    }
+    case 'demon': {
+      ctx.fillStyle = '#4f0714';
+      ctx.fillRect(3, 14, 10, 2);
+      ctx.fillStyle = '#cc2233';
+      ctx.fillRect(2, 5 + bob, 12, 8);
+      ctx.fillRect(4 + side, 2 + bob, 8, 5);
+      ctx.fillStyle = '#991122';
+      ctx.fillRect(3 + side, 0 + bob, 2, 3);
+      ctx.fillRect(11 + side, 0 + bob, 2, 3);
+      drawEyes(ctx, facing, '#ffff33', 4 + bob);
+      ctx.fillStyle = '#aa1133';
+      ctx.fillRect(3, 12, 4, 4);
+      ctx.fillRect(9, 12, 4, 4);
+      ctx.fillStyle = '#ddaa33';
+      ctx.fillRect(side >= 0 ? 13 : 1, 8 + bob, 2, 2);
+      ctx.fillRect(side >= 0 ? 1 : 13, 9 + bob, 2, 2);
+      break;
+    }
+  }
+}
+
+function createDirectionalEnemyTextures(scene: Phaser.Scene, enemy: EnemyKey) {
+  const facings: PlayerFacing[] = ['down', 'down_right', 'right', 'up_right', 'up', 'up_left', 'left', 'down_left'];
+  const frames: PlayerFrame[] = ['idle', 'walk1', 'walk2'];
+  for (const facing of facings) {
+    for (const frame of frames) {
+      generateTexture(scene, `${enemy}_${facing}_${frame}`, 16, 16, (ctx) => {
+        drawEnemyFrame(ctx, enemy, facing, frame);
+      });
+    }
+  }
+  generateTexture(scene, enemy, 16, 16, (ctx) => {
+    drawEnemyFrame(ctx, enemy, 'down', 'idle');
   });
+}
+
+export function createSlimeTexture(scene: Phaser.Scene) {
+  createDirectionalEnemyTextures(scene, 'slime');
 }
 
 export function createBatTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'bat', 16, 16, (ctx) => {
-    ctx.fillStyle = '#8844aa';
-    // Wings
-    ctx.fillRect(0, 4, 4, 4);
-    ctx.fillRect(12, 4, 4, 4);
-    // Body
-    ctx.fillRect(4, 3, 8, 8);
-    // Eyes
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(5, 5, 2, 2);
-    ctx.fillRect(9, 5, 2, 2);
-    // Fangs
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(6, 9, 1, 2);
-    ctx.fillRect(9, 9, 1, 2);
-  });
+  createDirectionalEnemyTextures(scene, 'bat');
 }
 
 export function createGoblinTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'goblin', 16, 16, (ctx) => {
-    // Body
-    ctx.fillStyle = '#66aa33';
-    ctx.fillRect(4, 4, 8, 8);
-    // Head
-    ctx.fillRect(5, 1, 6, 5);
-    // Ears
-    ctx.fillRect(3, 2, 2, 2);
-    ctx.fillRect(11, 2, 2, 2);
-    // Eyes
-    ctx.fillStyle = '#ff0';
-    ctx.fillRect(6, 2, 2, 2);
-    ctx.fillRect(9, 2, 2, 2);
-    // Legs
-    ctx.fillStyle = '#558822';
-    ctx.fillRect(4, 12, 3, 4);
-    ctx.fillRect(9, 12, 3, 4);
-  });
+  createDirectionalEnemyTextures(scene, 'goblin');
 }
 
 export function createSkeletonTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'skeleton', 16, 16, (ctx) => {
-    ctx.fillStyle = '#ddd8c8';
-    // Skull
-    ctx.fillRect(4, 0, 8, 6);
-    // Eye sockets
-    ctx.fillStyle = '#222';
-    ctx.fillRect(5, 2, 2, 2);
-    ctx.fillRect(9, 2, 2, 2);
-    // Ribcage
-    ctx.fillStyle = '#ccc7b7';
-    ctx.fillRect(5, 6, 6, 6);
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(6, 7, 1, 4);
-    ctx.fillRect(9, 7, 1, 4);
-    // Legs
-    ctx.fillStyle = '#bbb6a6';
-    ctx.fillRect(5, 12, 2, 4);
-    ctx.fillRect(9, 12, 2, 4);
-  });
+  createDirectionalEnemyTextures(scene, 'skeleton');
 }
 
 export function createOrcTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'orc', 16, 16, (ctx) => {
-    // Body (large)
-    ctx.fillStyle = '#557733';
-    ctx.fillRect(2, 4, 12, 8);
-    // Head
-    ctx.fillRect(4, 0, 8, 6);
-    // Tusks
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(5, 5, 1, 2);
-    ctx.fillRect(10, 5, 1, 2);
-    // Eyes
-    ctx.fillStyle = '#f00';
-    ctx.fillRect(5, 2, 2, 2);
-    ctx.fillRect(9, 2, 2, 2);
-    // Legs
-    ctx.fillStyle = '#446622';
-    ctx.fillRect(3, 12, 4, 4);
-    ctx.fillRect(9, 12, 4, 4);
-  });
+  createDirectionalEnemyTextures(scene, 'orc');
 }
 
 export function createGhostTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'ghost', 16, 16, (ctx) => {
-    ctx.fillStyle = '#aab8dd';
-    // Head
-    ctx.fillRect(3, 0, 10, 8);
-    // Body (wavy bottom)
-    ctx.fillRect(2, 8, 12, 6);
-    ctx.fillRect(3, 14, 2, 2);
-    ctx.fillRect(7, 14, 2, 2);
-    ctx.fillRect(11, 14, 2, 2);
-    // Eyes
-    ctx.fillStyle = '#334';
-    ctx.fillRect(5, 3, 2, 3);
-    ctx.fillRect(9, 3, 2, 3);
-    // Glow
-    ctx.fillStyle = '#8899bb';
-    ctx.fillRect(6, 4, 1, 1);
-    ctx.fillRect(10, 4, 1, 1);
-  });
+  createDirectionalEnemyTextures(scene, 'ghost');
 }
 
 export function createDemonTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'demon', 16, 16, (ctx) => {
-    // Body
-    ctx.fillStyle = '#cc2233';
-    ctx.fillRect(2, 4, 12, 8);
-    // Head
-    ctx.fillRect(4, 1, 8, 5);
-    // Horns
-    ctx.fillStyle = '#991122';
-    ctx.fillRect(3, 0, 2, 3);
-    ctx.fillRect(11, 0, 2, 3);
-    // Eyes
-    ctx.fillStyle = '#ff0';
-    ctx.fillRect(5, 2, 2, 2);
-    ctx.fillRect(9, 2, 2, 2);
-    // Legs
-    ctx.fillStyle = '#aa1133';
-    ctx.fillRect(3, 12, 4, 4);
-    ctx.fillRect(9, 12, 4, 4);
-    // Claws
-    ctx.fillStyle = '#ddaa33';
-    ctx.fillRect(1, 8, 2, 2);
-    ctx.fillRect(13, 8, 2, 2);
-  });
+  createDirectionalEnemyTextures(scene, 'demon');
 }
 
 // --- Bullet ---
 export function createBulletTexture(scene: Phaser.Scene) {
-  // Default / basic_shot: yellow bullet
-  generateTexture(scene, 'bullet', 6, 6, (ctx) => {
-    ctx.fillStyle = '#ffee55';
-    ctx.fillRect(1, 0, 4, 1);
-    ctx.fillRect(0, 1, 6, 4);
-    ctx.fillRect(1, 5, 4, 1);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(2, 2, 2, 2);
+  generateTexture(scene, 'bullet_basic', 14, 14, (ctx) => {
+    ctx.fillStyle = '#3b2b0b';
+    ctx.fillRect(5, 0, 4, 2);
+    ctx.fillRect(3, 2, 8, 2);
+    ctx.fillRect(1, 4, 12, 6);
+    ctx.fillRect(3, 10, 8, 2);
+    ctx.fillRect(5, 12, 4, 2);
+    ctx.fillStyle = '#c9951d';
+    ctx.fillRect(5, 1, 4, 2);
+    ctx.fillRect(3, 3, 8, 2);
+    ctx.fillRect(2, 5, 10, 4);
+    ctx.fillRect(4, 9, 6, 2);
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(5, 3, 4, 6);
+    ctx.fillRect(4, 5, 6, 2);
+    ctx.fillStyle = '#fff8c8';
+    ctx.fillRect(6, 4, 2, 3);
+    ctx.fillRect(8, 5, 1, 1);
   });
 
-  // Shotgun pellet: orange, small round
-  generateTexture(scene, 'bullet_shotgun', 5, 5, (ctx) => {
-    ctx.fillStyle = '#ff8833';
-    ctx.fillRect(1, 0, 3, 1);
-    ctx.fillRect(0, 1, 5, 3);
-    ctx.fillRect(1, 4, 3, 1);
-    ctx.fillStyle = '#ffcc66';
-    ctx.fillRect(1, 1, 3, 3);
+  generateTexture(scene, 'bullet_shotgun_pellet', 12, 12, (ctx) => {
+    ctx.fillStyle = '#4a1c09';
+    ctx.fillRect(4, 0, 4, 2);
+    ctx.fillRect(2, 2, 8, 2);
+    ctx.fillRect(1, 4, 10, 5);
+    ctx.fillRect(3, 9, 6, 2);
+    ctx.fillStyle = '#a64714';
+    ctx.fillRect(4, 1, 4, 2);
+    ctx.fillRect(3, 3, 6, 5);
+    ctx.fillRect(4, 8, 4, 2);
+    ctx.fillStyle = '#ff8844';
+    ctx.fillRect(5, 3, 3, 4);
+    ctx.fillStyle = '#ffd7a0';
+    ctx.fillRect(6, 3, 2, 1);
   });
 
-  // Boomerang: green V-shape
-  generateTexture(scene, 'bullet_boomerang', 6, 6, (ctx) => {
-    ctx.fillStyle = '#44dd44';
-    ctx.fillRect(0, 0, 2, 3);
-    ctx.fillRect(4, 0, 2, 3);
-    ctx.fillRect(1, 3, 4, 2);
-    ctx.fillStyle = '#88ff88';
-    ctx.fillRect(1, 1, 1, 2);
-    ctx.fillRect(4, 1, 1, 2);
+  generateTexture(scene, 'bullet_frost_shard', 14, 14, (ctx) => {
+    ctx.fillStyle = '#174b76';
+    ctx.fillRect(6, 0, 2, 14);
+    ctx.fillRect(4, 2, 6, 10);
+    ctx.fillRect(2, 5, 10, 4);
+    ctx.fillStyle = '#4daee8';
+    ctx.fillRect(6, 1, 2, 12);
+    ctx.fillRect(4, 4, 6, 6);
+    ctx.fillRect(3, 6, 8, 2);
+    ctx.fillStyle = '#bfefff';
+    ctx.fillRect(6, 2, 2, 8);
+    ctx.fillRect(5, 5, 4, 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(7, 3, 1, 4);
+    ctx.fillRect(9, 6, 1, 1);
   });
 
-  // Death scythe: purple blade
-  generateTexture(scene, 'bullet_scythe', 6, 6, (ctx) => {
-    ctx.fillStyle = '#8833aa';
-    ctx.fillRect(0, 0, 3, 2);
-    ctx.fillRect(0, 0, 2, 3);
-    ctx.fillRect(2, 2, 4, 2);
-    ctx.fillRect(4, 3, 2, 3);
-    ctx.fillStyle = '#cc66ff';
-    ctx.fillRect(1, 1, 1, 1);
+  generateTexture(scene, 'bullet_fragment_shell', 14, 14, (ctx) => {
+    ctx.fillStyle = '#321006';
+    ctx.fillRect(4, 0, 6, 2);
+    ctx.fillRect(2, 2, 10, 2);
+    ctx.fillRect(1, 4, 12, 6);
+    ctx.fillRect(3, 10, 8, 3);
+    ctx.fillStyle = '#8c2d0e';
+    ctx.fillRect(4, 1, 6, 2);
+    ctx.fillRect(3, 3, 8, 6);
+    ctx.fillRect(4, 9, 6, 2);
+    ctx.fillStyle = '#ff5522';
+    ctx.fillRect(5, 3, 4, 6);
+    ctx.fillRect(3, 5, 8, 2);
+    ctx.fillStyle = '#ffcc55';
+    ctx.fillRect(6, 5, 2, 2);
+    ctx.fillStyle = '#24120a';
+    ctx.fillRect(3, 3, 2, 1);
+    ctx.fillRect(9, 9, 2, 1);
+    ctx.fillRect(5, 11, 4, 1);
+  });
+
+  generateTexture(scene, 'bullet_boomerang_blade', 14, 14, (ctx) => {
+    ctx.fillStyle = '#073b2d';
+    ctx.fillRect(0, 1, 4, 7);
+    ctx.fillRect(10, 1, 4, 7);
+    ctx.fillRect(2, 8, 10, 4);
+    ctx.fillRect(5, 11, 4, 2);
+    ctx.fillStyle = '#20996f';
+    ctx.fillRect(1, 2, 3, 6);
+    ctx.fillRect(10, 2, 3, 6);
+    ctx.fillRect(3, 8, 8, 3);
+    ctx.fillStyle = '#55e6a8';
+    ctx.fillRect(2, 2, 2, 5);
+    ctx.fillRect(10, 2, 2, 5);
+    ctx.fillRect(4, 8, 6, 2);
+    ctx.fillStyle = '#ddfff0';
+    ctx.fillRect(3, 2, 1, 2);
+    ctx.fillRect(10, 2, 1, 2);
+  });
+
+  generateTexture(scene, 'bullet_death_wheel', 16, 16, (ctx) => {
+    ctx.fillStyle = '#031f1c';
+    ctx.fillRect(4, 0, 8, 2);
+    ctx.fillRect(2, 2, 12, 2);
+    ctx.fillRect(0, 4, 16, 8);
+    ctx.fillRect(2, 12, 12, 2);
+    ctx.fillRect(4, 14, 8, 2);
+    ctx.fillStyle = '#0f6b58';
+    ctx.fillRect(5, 1, 6, 2);
+    ctx.fillRect(2, 5, 12, 6);
+    ctx.fillRect(5, 13, 6, 2);
+    ctx.fillStyle = '#22ddaa';
+    ctx.fillRect(6, 2, 4, 2);
+    ctx.fillRect(3, 6, 10, 4);
+    ctx.fillRect(6, 12, 4, 2);
+    ctx.fillStyle = '#bbfff0';
+    ctx.fillRect(7, 7, 2, 2);
+    ctx.fillStyle = '#031f1c';
+    ctx.fillRect(0, 7, 3, 2);
+    ctx.fillRect(13, 7, 3, 2);
+  });
+
+  generateTexture(scene, 'bullet_venom_fang', 14, 14, (ctx) => {
+    ctx.fillStyle = '#0c2d10';
+    ctx.fillRect(6, 0, 3, 14);
+    ctx.fillRect(3, 2, 7, 9);
+    ctx.fillRect(1, 5, 11, 4);
+    ctx.fillStyle = '#2f8c2b';
+    ctx.fillRect(6, 1, 2, 11);
+    ctx.fillRect(4, 4, 5, 5);
+    ctx.fillRect(3, 6, 7, 2);
+    ctx.fillStyle = '#89d441';
+    ctx.fillRect(7, 2, 1, 7);
+    ctx.fillRect(5, 5, 3, 2);
+    ctx.fillStyle = '#d8ff76';
+    ctx.fillRect(7, 2, 1, 2);
+    ctx.fillRect(9, 6, 1, 1);
+    ctx.fillStyle = '#0c2d10';
+    ctx.fillRect(6, 11, 2, 1);
+  });
+
+  generateTexture(scene, 'bullet_plague_pod', 14, 14, (ctx) => {
+    ctx.fillStyle = '#172407';
+    ctx.fillRect(4, 1, 6, 2);
+    ctx.fillRect(2, 3, 10, 8);
+    ctx.fillRect(4, 11, 6, 2);
+    ctx.fillStyle = '#496f16';
+    ctx.fillRect(4, 2, 6, 2);
+    ctx.fillRect(3, 4, 8, 6);
+    ctx.fillRect(5, 10, 4, 2);
+    ctx.fillStyle = '#91b82a';
+    ctx.fillRect(5, 4, 4, 4);
+    ctx.fillStyle = '#d6ff55';
+    ctx.fillRect(6, 5, 2, 2);
+    ctx.fillStyle = '#2c4a0e';
+    ctx.fillRect(2, 9, 3, 1);
+    ctx.fillRect(10, 3, 1, 3);
+    ctx.fillStyle = '#b7e949';
     ctx.fillRect(3, 2, 1, 1);
+    ctx.fillRect(11, 10, 1, 1);
   });
 
-  // Poison snake: green fang/dart
-  generateTexture(scene, 'bullet_poison', 5, 5, (ctx) => {
-    ctx.fillStyle = '#33aa22';
-    ctx.fillRect(2, 0, 1, 2);
-    ctx.fillRect(0, 2, 5, 2);
-    ctx.fillRect(2, 4, 1, 1);
-    ctx.fillStyle = '#66ff33';
-    ctx.fillRect(1, 2, 3, 1);
-    // Venom drop
-    ctx.fillStyle = '#aaff44';
-    ctx.fillRect(2, 1, 1, 1);
+  generateTexture(scene, 'bullet_death_scythe', 16, 16, (ctx) => {
+    ctx.fillStyle = '#09000f';
+    ctx.fillRect(2, 1, 9, 2);
+    ctx.fillRect(1, 2, 4, 8);
+    ctx.fillRect(4, 7, 9, 3);
+    ctx.fillRect(11, 9, 3, 6);
+    ctx.fillStyle = '#4f1570';
+    ctx.fillRect(3, 2, 8, 1);
+    ctx.fillRect(2, 3, 3, 6);
+    ctx.fillRect(5, 7, 7, 2);
+    ctx.fillRect(12, 10, 1, 4);
+    ctx.fillStyle = '#a94fe0';
+    ctx.fillRect(3, 3, 5, 1);
+    ctx.fillRect(3, 4, 1, 4);
+    ctx.fillRect(6, 8, 5, 1);
+    ctx.fillStyle = '#e8a8ff';
+    ctx.fillRect(2, 2, 2, 1);
+    ctx.fillRect(8, 8, 2, 1);
   });
 
-  // Mega blaster: large gold bullet
-  generateTexture(scene, 'bullet_mega', 8, 8, (ctx) => {
-    ctx.fillStyle = '#cc8800';
-    ctx.fillRect(2, 0, 4, 1);
-    ctx.fillRect(0, 1, 8, 6);
-    ctx.fillRect(2, 7, 4, 1);
-    ctx.fillStyle = '#ffcc33';
-    ctx.fillRect(2, 1, 4, 6);
-    ctx.fillRect(1, 2, 6, 4);
-    ctx.fillStyle = '#fff8aa';
-    ctx.fillRect(3, 3, 2, 2);
+  generateTexture(scene, 'bullet_soul_reaper', 16, 16, (ctx) => {
+    ctx.fillStyle = '#080011';
+    ctx.fillRect(2, 1, 9, 2);
+    ctx.fillRect(1, 2, 4, 8);
+    ctx.fillRect(4, 7, 9, 3);
+    ctx.fillRect(11, 9, 3, 6);
+    ctx.fillStyle = '#5f1d91';
+    ctx.fillRect(3, 2, 8, 1);
+    ctx.fillRect(2, 3, 3, 6);
+    ctx.fillRect(5, 7, 7, 2);
+    ctx.fillRect(12, 10, 1, 4);
+    ctx.fillStyle = '#bb77ff';
+    ctx.fillRect(6, 8, 4, 2);
+    ctx.fillRect(3, 3, 4, 1);
+    ctx.fillStyle = '#f2d8ff';
+    ctx.fillRect(7, 8, 2, 1);
+    ctx.fillStyle = '#54266f';
+    ctx.fillRect(12, 4, 2, 2);
+    ctx.fillRect(10, 12, 2, 2);
   });
 
-  // Freeze shotgun: blue-white shard
-  generateTexture(scene, 'bullet_freeze', 5, 5, (ctx) => {
-    ctx.fillStyle = '#88ccff';
-    ctx.fillRect(1, 0, 3, 1);
-    ctx.fillRect(0, 1, 5, 3);
-    ctx.fillRect(1, 4, 3, 1);
-    ctx.fillStyle = '#cceeFF';
-    ctx.fillRect(2, 1, 1, 3);
-    ctx.fillRect(1, 2, 3, 1);
+  generateTexture(scene, 'bullet_mega_blaster', 16, 16, (ctx) => {
+    ctx.fillStyle = '#3f2800';
+    ctx.fillRect(5, 0, 6, 2);
+    ctx.fillRect(3, 2, 10, 2);
+    ctx.fillRect(1, 4, 14, 8);
+    ctx.fillRect(3, 12, 10, 2);
+    ctx.fillRect(5, 14, 6, 2);
+    ctx.fillStyle = '#a46b05';
+    ctx.fillRect(5, 1, 6, 2);
+    ctx.fillRect(3, 4, 10, 7);
+    ctx.fillRect(5, 12, 6, 2);
+    ctx.fillStyle = '#ffbb22';
+    ctx.fillRect(6, 3, 4, 10);
+    ctx.fillRect(2, 6, 12, 4);
+    ctx.fillStyle = '#fff1aa';
+    ctx.fillRect(7, 6, 2, 3);
+    ctx.fillRect(10, 7, 1, 1);
   });
 
-  // Fragment bomb: dark orange with spark
-  generateTexture(scene, 'bullet_fragment', 6, 6, (ctx) => {
-    ctx.fillStyle = '#aa4400';
-    ctx.fillRect(1, 0, 4, 1);
-    ctx.fillRect(0, 1, 6, 4);
-    ctx.fillRect(1, 5, 4, 1);
-    ctx.fillStyle = '#ff6622';
-    ctx.fillRect(2, 1, 2, 4);
-    ctx.fillRect(1, 2, 4, 2);
-    ctx.fillStyle = '#ffaa44';
-    ctx.fillRect(2, 2, 2, 2);
-  });
-
-  // Soul reaper: dark purple with soul glow
-  generateTexture(scene, 'bullet_soul', 6, 6, (ctx) => {
-    ctx.fillStyle = '#550066';
-    ctx.fillRect(0, 0, 3, 2);
-    ctx.fillRect(0, 0, 2, 3);
-    ctx.fillRect(2, 2, 4, 2);
-    ctx.fillRect(4, 3, 2, 3);
-    ctx.fillStyle = '#9933cc';
-    ctx.fillRect(1, 1, 1, 1);
-    ctx.fillRect(3, 3, 1, 1);
-    ctx.fillStyle = '#cc88ff';
-    ctx.fillRect(2, 2, 1, 1);
+  generateTexture(scene, 'bullet', 14, 14, (ctx) => {
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(3, 4, 8, 6);
+    ctx.fillRect(5, 2, 4, 10);
   });
 }
 
@@ -376,27 +697,158 @@ export function createSkillOrbTexture(scene: Phaser.Scene) {
 
 // --- Fireball orb (orbiting weapon) ---
 export function createFireballOrbTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fireball_orb', 16, 16, (ctx) => {
-    // Outer fire
+  generateTexture(scene, 'orb_fireball', 20, 20, (ctx) => {
+    ctx.fillStyle = '#5c1408';
+    ctx.fillRect(6, 0, 8, 2);
+    ctx.fillRect(3, 2, 14, 4);
+    ctx.fillRect(1, 6, 18, 8);
+    ctx.fillRect(3, 14, 14, 4);
+    ctx.fillRect(6, 18, 8, 2);
     ctx.fillStyle = '#ff4422';
-    ctx.fillRect(3, 0, 10, 2);
-    ctx.fillRect(1, 2, 14, 10);
-    ctx.fillRect(3, 12, 10, 2);
-    // Mid flame
-    ctx.fillStyle = '#ff8844';
-    ctx.fillRect(4, 3, 8, 8);
-    // Hot core
-    ctx.fillStyle = '#ffcc44';
-    ctx.fillRect(5, 4, 6, 6);
-    // White center
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(6, 5, 4, 4);
-    // Flame tips
+    ctx.fillRect(5, 2, 10, 3);
+    ctx.fillRect(3, 5, 14, 10);
+    ctx.fillRect(5, 15, 10, 3);
+    ctx.fillStyle = '#ff8a33';
+    ctx.fillRect(6, 5, 8, 8);
+    ctx.fillRect(4, 8, 12, 4);
+    ctx.fillStyle = '#ffdd55';
+    ctx.fillRect(7, 7, 6, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(9, 8, 3, 3);
     ctx.fillStyle = '#ff6622';
-    ctx.fillRect(5, 0, 2, 2);
-    ctx.fillRect(9, 0, 2, 2);
-    ctx.fillRect(5, 14, 2, 2);
-    ctx.fillRect(9, 14, 2, 2);
+    ctx.fillRect(4, 0, 2, 4);
+    ctx.fillRect(14, 0, 2, 4);
+    ctx.fillRect(2, 14, 3, 2);
+    ctx.fillRect(15, 14, 3, 2);
+  });
+
+  generateTexture(scene, 'orb_hellfire', 22, 22, (ctx) => {
+    ctx.fillStyle = '#2b0302';
+    ctx.fillRect(6, 0, 10, 2);
+    ctx.fillRect(3, 2, 16, 5);
+    ctx.fillRect(0, 7, 22, 8);
+    ctx.fillRect(3, 15, 16, 5);
+    ctx.fillRect(6, 20, 10, 2);
+    ctx.fillStyle = '#8f1608';
+    ctx.fillRect(5, 2, 12, 3);
+    ctx.fillRect(2, 5, 18, 12);
+    ctx.fillRect(5, 17, 12, 3);
+    ctx.fillStyle = '#ff3300';
+    ctx.fillRect(6, 4, 10, 14);
+    ctx.fillRect(4, 7, 14, 8);
+    ctx.fillStyle = '#ff9500';
+    ctx.fillRect(8, 7, 7, 8);
+    ctx.fillStyle = '#fff2aa';
+    ctx.fillRect(9, 9, 4, 4);
+    ctx.fillStyle = '#4a0803';
+    ctx.fillRect(2, 10, 3, 2);
+    ctx.fillRect(17, 10, 3, 2);
+    ctx.fillRect(10, 1, 2, 3);
+  });
+
+  generateTexture(scene, 'orb_tracking_fire', 20, 20, (ctx) => {
+    ctx.fillStyle = '#3a0503';
+    ctx.fillRect(5, 1, 11, 3);
+    ctx.fillRect(2, 4, 15, 10);
+    ctx.fillRect(5, 14, 11, 4);
+    ctx.fillRect(11, 17, 5, 2);
+    ctx.fillStyle = '#b51b0d';
+    ctx.fillRect(5, 3, 10, 3);
+    ctx.fillRect(4, 6, 12, 9);
+    ctx.fillRect(7, 15, 9, 2);
+    ctx.fillStyle = '#ff5533';
+    ctx.fillRect(6, 5, 8, 8);
+    ctx.fillStyle = '#ffcc44';
+    ctx.fillRect(8, 7, 5, 5);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(9, 8, 2, 2);
+    ctx.fillStyle = '#ff3300';
+    ctx.fillRect(15, 4, 4, 2);
+    ctx.fillRect(16, 6, 3, 4);
+    ctx.fillRect(13, 13, 3, 3);
+  });
+
+  generateTexture(scene, 'orb_sun_storm', 24, 24, (ctx) => {
+    ctx.fillStyle = '#5a1600';
+    ctx.fillRect(10, 0, 4, 24);
+    ctx.fillRect(0, 10, 24, 4);
+    ctx.fillRect(6, 2, 12, 3);
+    ctx.fillRect(2, 6, 20, 12);
+    ctx.fillRect(6, 19, 12, 3);
+    ctx.fillStyle = '#d95a00';
+    ctx.fillRect(8, 2, 8, 20);
+    ctx.fillRect(2, 8, 20, 8);
+    ctx.fillRect(5, 5, 14, 14);
+    ctx.fillStyle = '#ff9d22';
+    ctx.fillRect(7, 7, 10, 10);
+    ctx.fillStyle = '#ffdd44';
+    ctx.fillRect(9, 9, 6, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(11, 10, 3, 3);
+    ctx.fillStyle = '#fff4aa';
+    ctx.fillRect(11, 1, 2, 22);
+    ctx.fillRect(1, 11, 22, 2);
+  });
+
+  generateTexture(scene, 'orb_guardian_shield', 22, 22, (ctx) => {
+    ctx.fillStyle = '#07152e';
+    ctx.fillRect(7, 1, 8, 2);
+    ctx.fillRect(4, 3, 14, 3);
+    ctx.fillRect(2, 6, 18, 8);
+    ctx.fillRect(4, 14, 14, 4);
+    ctx.fillRect(8, 18, 6, 3);
+    ctx.fillStyle = '#1b3f7a';
+    ctx.fillRect(7, 2, 8, 2);
+    ctx.fillRect(5, 5, 12, 3);
+    ctx.fillRect(4, 8, 14, 6);
+    ctx.fillRect(6, 14, 10, 3);
+    ctx.fillRect(9, 17, 4, 2);
+    ctx.fillStyle = '#4488ff';
+    ctx.fillRect(8, 4, 6, 2);
+    ctx.fillRect(6, 8, 10, 4);
+    ctx.fillRect(8, 12, 6, 4);
+    ctx.fillStyle = '#b8d8ff';
+    ctx.fillRect(9, 7, 4, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(10, 8, 2, 2);
+    ctx.fillStyle = '#88bbff';
+    ctx.fillRect(4, 4, 2, 2);
+    ctx.fillRect(16, 4, 2, 2);
+    ctx.fillRect(10, 18, 2, 1);
+  });
+
+  generateTexture(scene, 'poison_cloud', 40, 40, (ctx) => {
+    ctx.fillStyle = '#102408';
+    ctx.fillRect(12, 5, 16, 5);
+    ctx.fillRect(7, 10, 26, 7);
+    ctx.fillRect(4, 17, 32, 9);
+    ctx.fillRect(8, 26, 26, 6);
+    ctx.fillRect(13, 32, 16, 3);
+    ctx.fillStyle = '#25440f';
+    ctx.fillRect(13, 7, 14, 5);
+    ctx.fillRect(8, 13, 24, 6);
+    ctx.fillRect(6, 19, 30, 6);
+    ctx.fillRect(10, 25, 22, 6);
+    ctx.fillStyle = '#5b8f22';
+    ctx.fillRect(14, 10, 12, 4);
+    ctx.fillRect(10, 17, 22, 4);
+    ctx.fillRect(13, 23, 18, 4);
+    ctx.fillStyle = '#9fd63a';
+    ctx.fillRect(15, 14, 4, 2);
+    ctx.fillRect(24, 18, 3, 2);
+    ctx.fillRect(11, 23, 2, 2);
+    ctx.fillStyle = '#d7ff67';
+    ctx.fillRect(18, 15, 2, 1);
+    ctx.fillRect(28, 21, 1, 1);
+    ctx.fillRect(8, 20, 1, 1);
+    ctx.fillStyle = '#162a0a';
+    ctx.fillRect(5, 14, 3, 2);
+    ctx.fillRect(32, 24, 3, 2);
+    ctx.fillRect(20, 31, 4, 1);
+  });
+
+  generateTexture(scene, 'fireball_orb', 20, 20, (ctx) => {
+    ctx.drawImage(scene.textures.get('orb_fireball').getSourceImage() as HTMLCanvasElement, 0, 0);
   });
 }
 
