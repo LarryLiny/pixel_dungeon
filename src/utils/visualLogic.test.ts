@@ -27,6 +27,8 @@ assertEqual(getProjectileVisual('plague_bomb').texture, 'bullet_plague_pod', 'pl
 assertEqual(getProjectileVisual('death_wheel').bodySize, 12, 'death wheel uses larger collision body');
 assertEqual(getOrbVisual('hellfire').texture, 'orb_hellfire', 'hellfire uses refined passive orb');
 assertEqual(getOrbVisual('sun_storm').orbitRadius, 70, 'sun storm keeps wide passive orbit');
+assertEqual(getOrbVisual('fireball_orbit').hitRadius, 26, 'fireball orbit hitbox matches visible orb');
+assertEqual(getOrbVisual('sun_storm').hitRadius, 34, 'sun storm hitbox matches large visible orb');
 assertEqual(getItemVisualType('poison_snake').label, '范围攻击', 'poison snake is presented as an area skill');
 assertEqual(getItemVisualType('fireball_orbit').label, '环绕被动', 'fireball orbit is presented as passive orbit');
 assertEqual(getItemVisualType('power').label, '属性强化', 'power is presented as an augment');

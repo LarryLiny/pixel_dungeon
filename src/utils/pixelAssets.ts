@@ -1129,161 +1129,108 @@ export function createDeathScytheTexture(scene: Phaser.Scene) {
   });
 }
 
-// --- Fragment: Common (white) ---
+function createFragmentCrystalTexture(
+  scene: Phaser.Scene,
+  key: string,
+  colors: { edge: string; shadow: string; mid: string; light: string; core: string; sparkle: string }
+) {
+  generateTexture(scene, key, 18, 18, (ctx) => {
+    ctx.fillStyle = colors.edge;
+    ctx.fillRect(8, 0, 4, 2);
+    ctx.fillRect(5, 2, 10, 2);
+    ctx.fillRect(3, 4, 14, 4);
+    ctx.fillRect(1, 8, 16, 4);
+    ctx.fillRect(4, 12, 12, 3);
+    ctx.fillRect(7, 15, 6, 2);
+
+    ctx.fillStyle = colors.shadow;
+    ctx.fillRect(6, 3, 9, 2);
+    ctx.fillRect(4, 5, 12, 5);
+    ctx.fillRect(5, 10, 10, 4);
+    ctx.fillRect(8, 14, 4, 2);
+
+    ctx.fillStyle = colors.mid;
+    ctx.fillRect(7, 2, 5, 3);
+    ctx.fillRect(5, 6, 10, 4);
+    ctx.fillRect(6, 10, 8, 3);
+    ctx.fillRect(8, 13, 4, 2);
+
+    ctx.fillStyle = colors.light;
+    ctx.fillRect(8, 3, 3, 3);
+    ctx.fillRect(6, 7, 5, 3);
+    ctx.fillRect(7, 11, 3, 2);
+
+    ctx.fillStyle = colors.core;
+    ctx.fillRect(9, 6, 4, 4);
+    ctx.fillRect(10, 10, 2, 2);
+
+    ctx.fillStyle = colors.edge;
+    ctx.fillRect(3, 7, 2, 1);
+    ctx.fillRect(14, 8, 2, 1);
+    ctx.fillRect(5, 13, 2, 1);
+    ctx.fillRect(12, 13, 2, 1);
+
+    ctx.fillStyle = colors.sparkle;
+    ctx.fillRect(8, 4, 1, 1);
+    ctx.fillRect(6, 8, 1, 1);
+    ctx.fillRect(12, 7, 1, 1);
+    ctx.fillRect(15, 3, 1, 1);
+    ctx.fillRect(2, 11, 1, 1);
+  });
+}
+
 export function createFragmentCommonTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fragment_common', 12, 12, (ctx) => {
-    // Diamond shape (light gray)
-    ctx.fillStyle = '#bbbbbb';
-    ctx.fillRect(4, 0, 4, 2);
-    ctx.fillRect(2, 2, 8, 2);
-    ctx.fillRect(0, 4, 12, 4);
-    ctx.fillRect(2, 8, 8, 2);
-    ctx.fillRect(4, 10, 4, 2);
-    // Inner highlight (white)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(4, 2, 4, 2);
-    ctx.fillRect(2, 4, 8, 2);
-    ctx.fillRect(4, 6, 4, 2);
-    // Bright center
-    ctx.fillStyle = '#eeeeff';
-    ctx.fillRect(4, 4, 4, 2);
-    // Outline edges (gray)
-    ctx.fillStyle = '#888888';
-    ctx.fillRect(4, 0, 4, 1);
-    ctx.fillRect(2, 2, 1, 1);
-    ctx.fillRect(9, 2, 1, 1);
-    ctx.fillRect(0, 4, 1, 4);
-    ctx.fillRect(11, 4, 1, 4);
-    ctx.fillRect(2, 9, 1, 1);
-    ctx.fillRect(9, 9, 1, 1);
-    ctx.fillRect(4, 11, 4, 1);
+  createFragmentCrystalTexture(scene, 'fragment_common', {
+    edge: '#5d6472',
+    shadow: '#8c95a8',
+    mid: '#c3cad8',
+    light: '#edf2ff',
+    core: '#ffffff',
+    sparkle: '#ffffff',
   });
 }
 
-// --- Fragment: Uncommon (green) ---
 export function createFragmentUncommonTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fragment_uncommon', 12, 12, (ctx) => {
-    // Diamond shape (green)
-    ctx.fillStyle = '#33bb44';
-    ctx.fillRect(4, 0, 4, 2);
-    ctx.fillRect(2, 2, 8, 2);
-    ctx.fillRect(0, 4, 12, 4);
-    ctx.fillRect(2, 8, 8, 2);
-    ctx.fillRect(4, 10, 4, 2);
-    // Inner highlight (light green)
-    ctx.fillStyle = '#88ee66';
-    ctx.fillRect(4, 2, 4, 2);
-    ctx.fillRect(2, 4, 8, 2);
-    ctx.fillRect(4, 6, 4, 2);
-    // Bright center
-    ctx.fillStyle = '#aaffaa';
-    ctx.fillRect(4, 4, 4, 2);
-    // Outline edges (dark green)
-    ctx.fillStyle = '#228833';
-    ctx.fillRect(4, 0, 4, 1);
-    ctx.fillRect(2, 2, 1, 1);
-    ctx.fillRect(9, 2, 1, 1);
-    ctx.fillRect(0, 4, 1, 4);
-    ctx.fillRect(11, 4, 1, 4);
-    ctx.fillRect(2, 9, 1, 1);
-    ctx.fillRect(9, 9, 1, 1);
-    ctx.fillRect(4, 11, 4, 1);
+  createFragmentCrystalTexture(scene, 'fragment_uncommon', {
+    edge: '#124b2a',
+    shadow: '#23834a',
+    mid: '#44c866',
+    light: '#97f080',
+    core: '#d8ffb5',
+    sparkle: '#f5ffd6',
   });
 }
 
-// --- Fragment: Rare (blue) ---
 export function createFragmentRareTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fragment_rare', 12, 12, (ctx) => {
-    // Diamond shape (blue)
-    ctx.fillStyle = '#3366dd';
-    ctx.fillRect(4, 0, 4, 2);
-    ctx.fillRect(2, 2, 8, 2);
-    ctx.fillRect(0, 4, 12, 4);
-    ctx.fillRect(2, 8, 8, 2);
-    ctx.fillRect(4, 10, 4, 2);
-    // Inner highlight (light blue)
-    ctx.fillStyle = '#66aaff';
-    ctx.fillRect(4, 2, 4, 2);
-    ctx.fillRect(2, 4, 8, 2);
-    ctx.fillRect(4, 6, 4, 2);
-    // Bright center
-    ctx.fillStyle = '#aaccff';
-    ctx.fillRect(4, 4, 4, 2);
-    // Outline edges (dark blue)
-    ctx.fillStyle = '#2244aa';
-    ctx.fillRect(4, 0, 4, 1);
-    ctx.fillRect(2, 2, 1, 1);
-    ctx.fillRect(9, 2, 1, 1);
-    ctx.fillRect(0, 4, 1, 4);
-    ctx.fillRect(11, 4, 1, 4);
-    ctx.fillRect(2, 9, 1, 1);
-    ctx.fillRect(9, 9, 1, 1);
-    ctx.fillRect(4, 11, 4, 1);
+  createFragmentCrystalTexture(scene, 'fragment_rare', {
+    edge: '#15367d',
+    shadow: '#285cc8',
+    mid: '#4a94ff',
+    light: '#8fd4ff',
+    core: '#d7f5ff',
+    sparkle: '#ffffff',
   });
 }
 
-// --- Fragment: Epic (purple) ---
 export function createFragmentEpicTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fragment_epic', 12, 12, (ctx) => {
-    // Diamond shape (purple)
-    ctx.fillStyle = '#8833cc';
-    ctx.fillRect(4, 0, 4, 2);
-    ctx.fillRect(2, 2, 8, 2);
-    ctx.fillRect(0, 4, 12, 4);
-    ctx.fillRect(2, 8, 8, 2);
-    ctx.fillRect(4, 10, 4, 2);
-    // Inner highlight (light purple)
-    ctx.fillStyle = '#aa66ee';
-    ctx.fillRect(4, 2, 4, 2);
-    ctx.fillRect(2, 4, 8, 2);
-    ctx.fillRect(4, 6, 4, 2);
-    // Bright center
-    ctx.fillStyle = '#ccaaff';
-    ctx.fillRect(4, 4, 4, 2);
-    // Outline edges (dark purple)
-    ctx.fillStyle = '#5522aa';
-    ctx.fillRect(4, 0, 4, 1);
-    ctx.fillRect(2, 2, 1, 1);
-    ctx.fillRect(9, 2, 1, 1);
-    ctx.fillRect(0, 4, 1, 4);
-    ctx.fillRect(11, 4, 1, 4);
-    ctx.fillRect(2, 9, 1, 1);
-    ctx.fillRect(9, 9, 1, 1);
-    ctx.fillRect(4, 11, 4, 1);
+  createFragmentCrystalTexture(scene, 'fragment_epic', {
+    edge: '#3a156f',
+    shadow: '#6c2bc4',
+    mid: '#a84cff',
+    light: '#d094ff',
+    core: '#f0d4ff',
+    sparkle: '#ffffff',
   });
 }
 
-// --- Fragment: Legendary (gold) ---
 export function createFragmentLegendaryTexture(scene: Phaser.Scene) {
-  generateTexture(scene, 'fragment_legendary', 12, 12, (ctx) => {
-    // Diamond shape (gold)
-    ctx.fillStyle = '#ddaa22';
-    ctx.fillRect(4, 0, 4, 2);
-    ctx.fillRect(2, 2, 8, 2);
-    ctx.fillRect(0, 4, 12, 4);
-    ctx.fillRect(2, 8, 8, 2);
-    ctx.fillRect(4, 10, 4, 2);
-    // Inner highlight (light gold)
-    ctx.fillStyle = '#ffdd66';
-    ctx.fillRect(4, 2, 4, 2);
-    ctx.fillRect(2, 4, 8, 2);
-    ctx.fillRect(4, 6, 4, 2);
-    // Bright center (pale gold)
-    ctx.fillStyle = '#ffeeaa';
-    ctx.fillRect(4, 4, 4, 2);
-    // Outline edges (dark gold)
-    ctx.fillStyle = '#aa7711';
-    ctx.fillRect(4, 0, 4, 1);
-    ctx.fillRect(2, 2, 1, 1);
-    ctx.fillRect(9, 2, 1, 1);
-    ctx.fillRect(0, 4, 1, 4);
-    ctx.fillRect(11, 4, 1, 4);
-    ctx.fillRect(2, 9, 1, 1);
-    ctx.fillRect(9, 9, 1, 1);
-    ctx.fillRect(4, 11, 4, 1);
-    // Sparkle highlights (white)
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(5, 4, 2, 1);
+  createFragmentCrystalTexture(scene, 'fragment_legendary', {
+    edge: '#7a3d00',
+    shadow: '#bd760e',
+    mid: '#ffb321',
+    light: '#ffe074',
+    core: '#fff6c4',
+    sparkle: '#ffffff',
   });
 }
 

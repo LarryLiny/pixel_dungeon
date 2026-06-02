@@ -9,6 +9,7 @@ export interface OrbVisual {
   scale: number;
   pulse: number;
   bodySize: number;
+  hitRadius: number;
   orbitRadius: number;
   orbitSpeed: number;
   damageMul: number;
@@ -36,6 +37,7 @@ const ORB_VISUALS: Record<string, OrbVisual> = {
     scale: 1.25,
     pulse: 0.05,
     bodySize: 13,
+    hitRadius: 26,
     orbitRadius: 50,
     orbitSpeed: 0.8,
     damageMul: 0.5,
@@ -45,6 +47,7 @@ const ORB_VISUALS: Record<string, OrbVisual> = {
     scale: 1.25,
     pulse: 0.08,
     bodySize: 14,
+    hitRadius: 28,
     orbitRadius: 54,
     orbitSpeed: 1,
     damageMul: 0.6,
@@ -54,6 +57,7 @@ const ORB_VISUALS: Record<string, OrbVisual> = {
     scale: 1.25,
     pulse: 0.06,
     bodySize: 13,
+    hitRadius: 26,
     orbitRadius: 52,
     orbitSpeed: 0.85,
     damageMul: 0.55,
@@ -63,6 +67,7 @@ const ORB_VISUALS: Record<string, OrbVisual> = {
     scale: 1.55,
     pulse: 0.1,
     bodySize: 16,
+    hitRadius: 34,
     orbitRadius: 70,
     orbitSpeed: 0.8,
     damageMul: 0.8,
@@ -72,6 +77,7 @@ const ORB_VISUALS: Record<string, OrbVisual> = {
     scale: 1.35,
     pulse: 0.05,
     bodySize: 14,
+    hitRadius: 26,
     orbitRadius: 40,
     orbitSpeed: 0.9,
     damageMul: 0.45,
@@ -81,6 +87,7 @@ const ORB_VISUALS: Record<string, OrbVisual> = {
     scale: 1.45,
     pulse: 0.06,
     bodySize: 15,
+    hitRadius: 28,
     orbitRadius: 42,
     orbitSpeed: 1,
     damageMul: 0.55,

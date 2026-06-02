@@ -463,6 +463,7 @@ export class AutoShootSystem {
     const orbitRadius = orbVisual.orbitRadius;
     const orbitSpeed = orbVisual.orbitSpeed;
     const orbDamage = BULLET_DAMAGE * mod.damageMul * orbVisual.damageMul;
+    const hitCooldown = weaponType === 'sun_storm' ? 180 : 240;
 
     for (let i = 0; i < this.orbs.length; i++) {
       const orb = this.orbs[i];
@@ -509,11 +510,38 @@ export class AutoShootSystem {
       for (const enemy of enemies) {
         if (!enemy.isAlive || !enemy.active) continue;
         const dist = distance(ox, oy, enemy.x, enemy.y);
-        if (dist < 18) {
-          // Apply orb damage using delta time for frame-rate independence
-          const dt = Math.min(this.scene.game.loop.delta / 1000, 0.05);
-          const dmgPerFrame = orbDamage * dt * 3; // ~3 hits per second equivalent
-          enemy.takeDamage(dmgPerFrame);
+        if (dist < orbVisual.hitRadius) {
+          const lastHit = (enemy as any)._lastOrbHitTime || 0;
+          if (time - lastHit < hitCooldown) continue;
+          (enemy as any)._lastOrbHitTime = time;
+
+          const damage = orbDamage * (hitCooldown / 1000) * 3;
+          enemy.takeDamage(damage);
+
+          const dx = enemy.x - ox;
+          const dy = enemy.y - oy;
+          const len = Math.sqrt(dx * dx + dy * dy) || 1;
+          enemy.setVelocity((dx / len) * 70, (dy / len) * 70);
+
+          if (!(enemy as any)._lastOrbFeedbackTime || time - (enemy as any)._lastOrbFeedbackTime > 500) {
+            (enemy as any)._lastOrbFeedbackTime = time;
+            const text = this.scene.add.text(enemy.x, enemy.y - 18, Math.ceil(damage).toString(), {
+              fontSize: '11px',
+              color: '#ffcc66',
+              fontFamily: 'monospace',
+              fontStyle: 'bold',
+              stroke: '#000000',
+              strokeThickness: 2,
+            }).setOrigin(0.5).setDepth(120);
+            this.scene.tweens.add({
+              targets: text,
+              y: enemy.y - 36,
+              alpha: 0,
+              duration: 450,
+              onComplete: () => { if (text.active) text.destroy(); },
+            });
+          }
+
           if (!enemy.isAlive && this.onOrbKill) {
             this.onOrbKill(enemy);
           }
